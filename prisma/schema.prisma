@@ -1,0 +1,183 @@
+// -----------------------------
+// ✅ Prisma Schema - NextSale POS Argentina
+// Compatible con Vercel + Neon (PostgreSQL)
+// -----------------------------
+
+// --- Generador del cliente Prisma ---
+generator client {
+  provider = "prisma-client-js"
+}
+
+// --- Fuente de datos (PostgreSQL) ---
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Modelos principales ---
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  companyId    String?
+  company      Company? @relation("CompanyUsers", fields: [companyId], references: [id])
+  role         String   @default("user") // user | admin | owner
+  resetToken   String?  @unique
+  resetTokenExpiry DateTime?
+  createdAt    DateTime @default(now())
+}
+
+model Company {
+  id          String         @id @default(cuid())
+  name        String
+  cuit        String?
+  address     String?
+  logoUrl     String?        // Logo de la empresa para facturas
+  createdAt   DateTime       @default(now())
+
+  // Relaciones
+  users       User[]         @relation("CompanyUsers")
+  products    Product[]      @relation("CompanyProducts")
+  customers   Customer[]     @relation("CompanyCustomers")
+  sales       Sale[]         @relation("CompanySales")
+  cash        CashMovement[] @relation("CompanyCashMovements")
+  auditLogs   AuditLog[]     @relation("CompanyAuditLogs")
+  suppliers   Supplier[]     // Agregando relación faltante con Supplier
+}
+
+// --- Productos ---
+model Product {
+  id          String     @id @default(cuid())
+  companyId   String
+  company     Company    @relation("CompanyProducts", fields: [companyId], references: [id])
+  sku         String?
+  name        String
+  categoryId  String?    // Relación con categoría/rubro
+  category    Category?  @relation(fields: [categoryId], references: [id])
+  supplierId  String?    // Relación con proveedor
+  supplier    Supplier?  @relation("ProductSupplier", fields: [supplierId], references: [id], onDelete: SetNull)
+  costPrice   Float      @default(0) // Precio de costo
+  price       Float      // Precio de venta final
+  stock       Int        @default(0)
+  stockIdeal  Int?       // Stock ideal
+  stockMinimo Int?       // Stock mínimo
+  imageUrl    String?
+  createdAt   DateTime   @default(now())
+
+  // Relación con ítems de venta
+  saleItems   SaleItem[]
+  
+  @@unique([companyId, sku])
+}
+
+// --- Clientes ---
+model Customer {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation("CompanyCustomers", fields: [companyId], references: [id])
+  name        String
+  email       String?
+  phone       String?
+  creditLimit Float    @default(0) // Límite de crédito del cliente
+  currentDebt Float    @default(0) // Deuda actual del cliente
+  createdAt   DateTime @default(now())
+
+  // Relación con ventas
+  sales       Sale[]
+}
+
+// --- Ventas ---
+model Sale {
+  id             String     @id @default(cuid())
+  companyId      String
+  company        Company    @relation("CompanySales", fields: [companyId], references: [id])
+  customerId     String?
+  customer       Customer?  @relation(fields: [customerId], references: [id])
+  total          Float
+  status         String     @default("completed") // completed | canceled | draft
+  internalNumber Int        // Ahora será numérico puro
+  createdAt      DateTime   @default(now())
+
+  // Ítems asociados
+  items          SaleItem[]
+}
+
+// --- Ítems de venta ---
+model SaleItem {
+  id          String  @id @default(cuid())
+  saleId      String
+  sale        Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId   String?  // Ahora es opcional para productos manuales
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String?  // Nombre manual del producto
+  quantity    Int
+  price       Float
+}
+
+// --- Movimientos de caja ---
+model CashMovement {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation("CompanyCashMovements", fields: [companyId], references: [id])
+  type        String   // ingreso | egreso
+  amount      Float
+  note        String?
+  createdAt   DateTime @default(now())
+}
+
+// --- Auditoría general ---
+model AuditLog {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation("CompanyAuditLogs", fields: [companyId], references: [id])
+  userId      String?  // Ahora puede ser null si no hay sesión activa
+  action      String   // CREATE_PRODUCT | UPDATE_PRODUCT_PRICE | DELETE_SALE | etc.
+  entityType  String   // Product | Sale | Customer | CashMovement | etc.
+  entityId    String
+  entityName  String?  // Nombre de la entidad afectada
+  oldValues   String?  // Valores anteriores en JSON
+  newValues   String?  // Valores nuevos en JSON
+  ipAddress   String?  // IP del usuario
+  userAgent   String?  // User agent del navegador
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+}
+
+model Supplier {
+  id          String    @id @default(uuid())
+  companyId   String
+  name        String
+  contactName String?   // persona de contacto
+  phone       String? 
+  email       String? 
+  address     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relaciones (si usás Company)
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  products    Product[] @relation("ProductSupplier")
+
+  @@map("suppliers")
+  @@index([companyId])
+}
+
+// --- Categorías/rubros de productos ---
+model Category {
+  id          String    @id @default(cuid())
+  companyId   String
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  
+  products    Product[]
+  
+  @@unique([companyId, name])
+}
