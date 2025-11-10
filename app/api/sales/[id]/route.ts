@@ -3,10 +3,10 @@ import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 
 // GET /api/sales/[id] - Get a single sale
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
 
     const sale = await db.sale.findFirst({
       where: {
@@ -35,10 +35,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT /api/sales/[id] - Update a sale status
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
     const { status } = body
@@ -77,10 +77,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/sales/[id] - Delete a sale
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
 
     const sale = await db.sale.findFirst({
       where: {
@@ -89,6 +89,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       },
       include: {
         items: true,
+        customer: true,
       },
     })
 
@@ -96,6 +97,18 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: "Sale not found" }, { status: 404 })
     }
 
+    if (sale.customerId && sale.paymentStatus === "pending") {
+      await db.customer.update({
+        where: { id: sale.customerId },
+        data: {
+          currentDebt: {
+            decrement: sale.total,
+          },
+        },
+      })
+    }
+
+    // Restaurar stock de productos
     for (const item of sale.items) {
       if (item.productId) {
         try {
@@ -108,7 +121,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
             },
           })
         } catch (error) {
-          // Producto fue eliminado, continuar sin error
           console.log("Product not found, skipping stock restore:", item.productId)
         }
       }

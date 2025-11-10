@@ -37,44 +37,47 @@ export async function POST(request: NextRequest) {
     const companyId = await getCompanyId()
 
     const body = await request.json()
-    const { customerId, items, status = "completed" } = body
+    const { customerId, items, status = "completed", paymentStatus = "paid" } = body
 
-    console.log("[v0] Creating sale with data:", { customerId, itemsCount: items?.length, status })
+    console.log("[v0] Creating sale with data:", { customerId, itemsCount: items?.length, status, paymentStatus })
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: "Items are required" }, { status: 400 })
-    }
-
-    // Validar límite de crédito si hay cliente
-    if (customerId) {
-      const customer = await db.customer.findUnique({
-        where: { id: customerId },
-      })
-
-      if (customer && customer.creditLimit) {
-        const total = items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0)
-        const newDebt = (customer.currentDebt || 0) + total
-
-        if (newDebt > customer.creditLimit) {
-          return NextResponse.json(
-            {
-              error: `El cliente ha superado su límite de crédito. Límite: $${customer.creditLimit}, Deuda actual: $${customer.currentDebt || 0}`,
-            },
-            { status: 400 },
-          )
-        }
-
-        await db.customer.update({
-          where: { id: customerId },
-          data: { currentDebt: newDebt },
-        })
-      }
     }
 
     // Calcular total
     let total = 0
     for (const item of items) {
       total += item.price * item.quantity
+    }
+
+    // Validar límite de crédito si hay cliente
+    if (customerId && paymentStatus === "pending") {
+      const customer = await db.customer.findUnique({
+        where: { id: customerId },
+      })
+
+      if (customer) {
+        const newDebt = (customer.currentDebt || 0) + total
+
+        // Validar límite de crédito si está configurado
+        if (customer.creditLimit > 0 && newDebt > customer.creditLimit) {
+          return NextResponse.json(
+            {
+              error: `El cliente ha superado su límite de crédito. Límite: $${customer.creditLimit}, Deuda actual: $${customer.currentDebt || 0}, Nueva deuda: $${newDebt}`,
+            },
+            { status: 400 },
+          )
+        }
+
+        // Actualizar deuda del cliente
+        await db.customer.update({
+          where: { id: customerId },
+          data: { currentDebt: newDebt },
+        })
+
+        console.log("[v0] Customer debt updated:", { customerId, oldDebt: customer.currentDebt, newDebt })
+      }
     }
 
     // Generar número interno
@@ -121,6 +124,7 @@ export async function POST(request: NextRequest) {
         customerId,
         total,
         status,
+        paymentStatus,
         internalNumber,
         items: {
           create: itemsWithNames,

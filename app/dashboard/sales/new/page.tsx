@@ -189,7 +189,7 @@ export default function NewSalePage() {
           const createResponse = await fetch("/api/customers", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+            body: JSON.JSON.stringify({
               name: "Consumidor Final",
               email: null,
               phone: null,
@@ -203,6 +203,8 @@ export default function NewSalePage() {
         finalCustomerId = consumidorFinal?.id || null
       }
 
+      const paymentStatus = saleCondition === "contado" ? "paid" : "pending"
+
       const response = await fetch("/api/sales", {
         method: "POST",
         headers: {
@@ -212,10 +214,11 @@ export default function NewSalePage() {
           customerId: finalCustomerId,
           items: items.map((item) => ({
             productId: item.productId,
-            productName: item.productName, // Siempre incluir productName para productos manuales y futuros eliminados
+            productName: item.productName,
             quantity: item.quantity,
             price: item.price,
           })),
+          paymentStatus, // Enviar el paymentStatus correcto
           documentType,
           paymentMethod,
           observations,

@@ -97,6 +97,7 @@ model Sale {
   customer       Customer?  @relation(fields: [customerId], references: [id])
   total          Float
   status         String     @default("completed") // completed | canceled | draft
+  paymentStatus  String     @default("paid") // paid | pending | partial
   internalNumber Int        // Ahora será numérico puro
   createdAt      DateTime   @default(now())
 
