@@ -20,17 +20,24 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       where: { id },
     })
 
-    await db.auditLog.create({
-      data: {
-        companyId,
-        action: "DELETE_CASH_MOVEMENT",
-        entityType: "CashMovement",
-        entityId: id,
-        entityName: `${cashMovement.type === "ingreso" ? "Ingreso" : "Egreso"} - $${cashMovement.amount}`,
-        oldValues: JSON.stringify({ type: cashMovement.type, amount: cashMovement.amount, note: cashMovement.note }),
-        newValues: null,
-      },
-    })
+    try {
+      await db.auditLog.create({
+        data: {
+          companyId,
+          userId: null,
+          action: "DELETE_CASH_MOVEMENT",
+          entityType: "CashMovement",
+          entityId: id,
+          entityName: `${cashMovement.type === "ingreso" ? "Ingreso" : "Egreso"} - $${cashMovement.amount}`,
+          oldValues: JSON.stringify({ type: cashMovement.type, amount: cashMovement.amount, note: cashMovement.note }),
+          newValues: null,
+          ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
+          userAgent: request.headers.get("user-agent") || "unknown",
+        },
+      })
+    } catch (auditError) {
+      console.error("[v0] Error creating audit log (non-critical):", auditError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

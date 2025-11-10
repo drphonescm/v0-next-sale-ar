@@ -57,21 +57,28 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       },
     })
 
-    await db.auditLog.create({
-      data: {
-        companyId,
-        action: "UPDATE_CUSTOMER",
-        entityType: "Customer",
-        entityId: id,
-        entityName: updatedCustomer.name,
-        oldValues: JSON.stringify({ name: oldCustomer.name, email: oldCustomer.email, phone: oldCustomer.phone }),
-        newValues: JSON.stringify({
-          name: updatedCustomer.name,
-          email: updatedCustomer.email,
-          phone: updatedCustomer.phone,
-        }),
-      },
-    })
+    try {
+      await db.auditLog.create({
+        data: {
+          companyId,
+          userId: null,
+          action: "UPDATE_CUSTOMER",
+          entityType: "Customer",
+          entityId: id,
+          entityName: updatedCustomer.name,
+          oldValues: JSON.stringify({ name: oldCustomer.name, email: oldCustomer.email, phone: oldCustomer.phone }),
+          newValues: JSON.stringify({
+            name: updatedCustomer.name,
+            email: updatedCustomer.email,
+            phone: updatedCustomer.phone,
+          }),
+          ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
+          userAgent: request.headers.get("user-agent") || "unknown",
+        },
+      })
+    } catch (auditError) {
+      console.error("[v0] Error creating audit log (non-critical):", auditError)
+    }
 
     return NextResponse.json(updatedCustomer)
   } catch (error) {
@@ -98,17 +105,24 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       where: { id },
     })
 
-    await db.auditLog.create({
-      data: {
-        companyId,
-        action: "DELETE_CUSTOMER",
-        entityType: "Customer",
-        entityId: id,
-        entityName: customer.name,
-        oldValues: JSON.stringify({ name: customer.name, email: customer.email, phone: customer.phone }),
-        newValues: null,
-      },
-    })
+    try {
+      await db.auditLog.create({
+        data: {
+          companyId,
+          userId: null,
+          action: "DELETE_CUSTOMER",
+          entityType: "Customer",
+          entityId: id,
+          entityName: customer.name,
+          oldValues: JSON.stringify({ name: customer.name, email: customer.email, phone: customer.phone }),
+          newValues: null,
+          ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
+          userAgent: request.headers.get("user-agent") || "unknown",
+        },
+      })
+    } catch (auditError) {
+      console.error("[v0] Error creating audit log (non-critical):", auditError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

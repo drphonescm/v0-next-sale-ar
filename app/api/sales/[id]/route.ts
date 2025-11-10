@@ -3,10 +3,10 @@ import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 
 // GET /api/sales/[id] - Get a single sale
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = await params
+    const { id } = params
 
     const sale = await db.sale.findFirst({
       where: {
@@ -35,10 +35,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // PUT /api/sales/[id] - Update a sale status
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = await params
+    const { id } = params
     const body = await request.json()
 
     const { status } = body
@@ -77,10 +77,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // DELETE /api/sales/[id] - Delete a sale
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = await params
+    const { id } = params
 
     const sale = await db.sale.findFirst({
       where: {
@@ -108,7 +108,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             },
           })
         } catch (error) {
-          // Producto fue eliminado, continuar sin error
           console.log("[v0] Product not found, skipping stock restore:", item.productId)
         }
       }
@@ -121,6 +120,30 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     await db.sale.delete({
       where: { id },
     })
+
+    try {
+      await db.auditLog.create({
+        data: {
+          companyId,
+          userId: null,
+          action: "DELETE_SALE",
+          entityType: "Sale",
+          entityId: id,
+          entityName: `Venta #${sale.internalNumber}`,
+          oldValues: JSON.stringify({
+            internalNumber: sale.internalNumber,
+            total: sale.total,
+            status: sale.status,
+            itemsCount: sale.items.length,
+          }),
+          newValues: null,
+          ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
+          userAgent: request.headers.get("user-agent") || "unknown",
+        },
+      })
+    } catch (auditError) {
+      console.error("[v0] Error creating audit log (non-critical):", auditError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
