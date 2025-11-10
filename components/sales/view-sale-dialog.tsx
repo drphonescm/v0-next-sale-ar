@@ -83,7 +83,9 @@ export function ViewSaleDialog({ open, onOpenChange, sale }: ViewSaleDialogProps
               <TableBody>
                 {sale.items.map((item: any) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.product.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {item.productName || item.product?.name || "Producto eliminado"}
+                    </TableCell>
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell>{formatCurrency(item.price)}</TableCell>
                     <TableCell className="text-right font-semibold">

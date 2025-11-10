@@ -3,10 +3,10 @@ import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 
 // GET /api/sales/[id] - Get a single sale
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
 
     const sale = await db.sale.findFirst({
       where: {
@@ -35,10 +35,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT /api/sales/[id] - Update a sale status
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
     const { status } = body
@@ -77,10 +77,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/sales/[id] - Delete a sale
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
 
     const sale = await db.sale.findFirst({
       where: {
@@ -109,7 +109,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
           })
         } catch (error) {
           // Producto fue eliminado, continuar sin error
-          console.log("Product not found, skipping stock restore:", item.productId)
+          console.log("[v0] Product not found, skipping stock restore:", item.productId)
         }
       }
     }
@@ -124,7 +124,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Error deleting sale:", error)
+    console.error("[v0] Error deleting sale:", error)
     return NextResponse.json({ error: "Failed to delete sale" }, { status: 500 })
   }
 }
