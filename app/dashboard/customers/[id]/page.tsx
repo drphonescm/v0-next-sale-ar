@@ -41,6 +41,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
     name: "",
     email: "",
     phone: "",
+    creditLimit: "",
   })
 
   const formatCurrency = (amount: number) => {
@@ -62,6 +63,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       name: customer.name,
       email: customer.email || "",
       phone: customer.phone || "",
+      creditLimit: customer.creditLimit?.toString() || "0",
     })
     setIsEditing(true)
   }
@@ -71,7 +73,10 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       const response = await fetch(`/api/customers/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editData),
+        body: JSON.stringify({
+          ...editData,
+          creditLimit: editData.creditLimit ? Number.parseFloat(editData.creditLimit) : 0,
+        }),
       })
 
       if (!response.ok) {
@@ -93,6 +98,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       name: customer.name,
       email: customer.email || "",
       phone: customer.phone || "",
+      creditLimit: customer.creditLimit?.toString() || "0",
     })
   }
 
@@ -180,6 +186,17 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                     placeholder={t("customerPhone")}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="creditLimit">{t("creditLimit")}</Label>
+                  <Input
+                    id="creditLimit"
+                    type="number"
+                    step="0.01"
+                    value={editData.creditLimit}
+                    onChange={(e) => setEditData({ ...editData, creditLimit: e.target.value })}
+                    placeholder="0.00"
+                  />
+                </div>
               </div>
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={handleCancel}>
@@ -215,6 +232,13 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                   <div>
                     <p className="text-sm text-muted-foreground">{t("phone")}</p>
                     <p className="font-medium">{customer.phone || t("notSpecified")}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CreditCardIcon className="size-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t("creditLimit")}</p>
+                    <p className="font-medium text-lg">{formatCurrency(customer.creditLimit || 0)}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
