@@ -79,9 +79,10 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       }
 
       toast.success("Cliente actualizado exitosamente")
-      mutate()
+      await mutate()
       setIsEditing(false)
     } catch (error) {
+      console.error("Error updating customer:", error)
       toast.error("Error al actualizar el cliente")
     }
   }

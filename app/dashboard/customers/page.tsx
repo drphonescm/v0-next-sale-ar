@@ -20,6 +20,7 @@ const fetcher = (url: string) =>
 export default function CustomersPage() {
   const { data: customers, error, mutate } = useSWR("/api/customers", fetcher)
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const { t } = useTranslation()
   const router = useRouter()
@@ -42,7 +43,7 @@ export default function CustomersPage() {
 
   const handleDelete = (customer: any) => {
     setSelectedCustomer(customer)
-    router.push(`/dashboard/customers/${customer.id}/delete`)
+    setDeleteDialogOpen(true)
   }
 
   const handleAdd = () => {
@@ -52,6 +53,7 @@ export default function CustomersPage() {
   const handleSuccess = () => {
     mutate()
     setSelectedCustomer(null)
+    setDeleteDialogOpen(false)
   }
 
   if (error) {
@@ -187,8 +189,8 @@ export default function CustomersPage() {
       </Card>
 
       <DeleteCustomerDialog
-        open={false}
-        onOpenChange={() => {}}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
         customer={selectedCustomer}
         onSuccess={handleSuccess}
       />

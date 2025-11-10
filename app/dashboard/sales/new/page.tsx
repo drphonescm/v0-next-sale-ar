@@ -241,545 +241,582 @@ export default function NewSalePage() {
   }
 
   const generateA4Invoice = async () => {
-    const { PDFDocument, rgb, StandardFonts } = await import("pdf-lib")
+    try {
+      const { PDFDocument, rgb, StandardFonts } = await import("pdf-lib")
 
-    const pdfDoc = await PDFDocument.create()
-    const page = pdfDoc.addPage([595, 842]) // A4 size
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+      const pdfDoc = await PDFDocument.create()
+      const page = pdfDoc.addPage([595, 842]) // A4 size
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
 
-    const { width, height } = page.getSize()
-    let yPos = height - 40
+      const { width, height } = page.getSize()
+      let yPos = height - 40
 
-    // Header background
-    page.drawRectangle({
-      x: 0,
-      y: height - 100,
-      width: width,
-      height: 100,
-      color: rgb(0.98, 0.98, 0.99),
-    })
-
-    // Logo y nombre de empresa alineados horizontalmente
-    let logoWidth = 0
-    if (companySettings?.logoUrl) {
-      try {
-        const logoResponse = await fetch(companySettings.logoUrl)
-        const logoBytes = await logoResponse.arrayBuffer()
-        const logoImage = await pdfDoc.embedPng(logoBytes)
-        const logoDims = logoImage.scale(0.15)
-        logoWidth = logoDims.width
-        page.drawImage(logoImage, {
-          x: 40,
-          y: height - 85,
-          width: logoDims.width,
-          height: logoDims.height,
-        })
-      } catch (error) {
-        console.error("[v0] Error loading logo:", error)
-      }
-    }
-
-    // Nombre de empresa al lado del logo
-    page.drawText(companySettings?.name || "Next Sale", {
-      x: 40 + logoWidth + 15,
-      y: height - 60,
-      size: 20,
-      font: boldFont,
-      color: rgb(0.1, 0.2, 0.4),
-    })
-
-    // Badge de factura rediseñado y mejor posicionado
-    const badgeWidth = 100
-    const badgeHeight = 60
-    const badgeX = width - badgeWidth - 40
-    const badgeY = height - 90
-
-    // Badge background
-    page.drawRectangle({
-      x: badgeX,
-      y: badgeY,
-      width: badgeWidth,
-      height: badgeHeight,
-      color: rgb(0.25, 0.47, 0.75),
-      borderRadius: 4,
-    })
-
-    // Texto "FACTURA"
-    page.drawText("FACTURA", {
-      x: badgeX + 20,
-      y: badgeY + 42,
-      size: 11,
-      font: boldFont,
-      color: rgb(1, 1, 1),
-    })
-
-    // Letra "C"
-    page.drawText("C", {
-      x: badgeX + 42,
-      y: badgeY + 25,
-      size: 18,
-      font: boldFont,
-      color: rgb(1, 1, 1),
-    })
-
-    // Número de factura
-    const invoiceNum = completedSaleNumber.toString().padStart(8, "0")
-    page.drawText(`N° ${invoiceNum}`, {
-      x: badgeX + 12,
-      y: badgeY + 8,
-      size: 9,
-      font: boldFont,
-      color: rgb(1, 1, 1),
-    })
-
-    // Fecha debajo del badge
-    const saleDay = saleDate.getDate().toString().padStart(2, "0")
-    const saleMonth = (saleDate.getMonth() + 1).toString().padStart(2, "0")
-    const saleYear = saleDate.getFullYear()
-
-    page.drawText(`Fecha: ${saleDay}/${saleMonth}/${saleYear}`, {
-      x: badgeX,
-      y: badgeY - 15,
-      size: 9,
-      font,
-      color: rgb(0.3, 0.3, 0.3),
-    })
-
-    yPos = height - 120
-
-    // Customer section header
-    page.drawRectangle({
-      x: 40,
-      y: yPos - 22,
-      width: width - 80,
-      height: 22,
-      color: rgb(0.94, 0.95, 0.97),
-    })
-
-    page.drawText("DATOS DEL CLIENTE", {
-      x: 50,
-      y: yPos - 15,
-      size: 9,
-      font: boldFont,
-      color: rgb(0.2, 0.3, 0.5),
-    })
-
-    yPos -= 22
-
-    // Customer data box
-    page.drawRectangle({
-      x: 40,
-      y: yPos - 50,
-      width: width - 80,
-      height: 50,
-      borderColor: rgb(0.85, 0.85, 0.85),
-      borderWidth: 1,
-      color: rgb(1, 1, 1),
-    })
-
-    yPos -= 15
-
-    // Primera fila de datos
-    const customerName = selectedCustomer?.name || "Consumidor Final"
-    page.drawText("Cliente:", {
-      x: 50,
-      y: yPos,
-      size: 9,
-      font: boldFont,
-      color: rgb(0.2, 0.2, 0.2),
-    })
-
-    page.drawText(customerName, {
-      x: 100,
-      y: yPos,
-      size: 9,
-      font,
-      color: rgb(0.3, 0.3, 0.3),
-    })
-
-    page.drawText("Condición IVA:", {
-      x: 320,
-      y: yPos,
-      size: 9,
-      font: boldFont,
-      color: rgb(0.2, 0.2, 0.2),
-    })
-
-    page.drawText("Consumidor Final", {
-      x: 410,
-      y: yPos,
-      size: 9,
-      font,
-      color: rgb(0.3, 0.3, 0.3),
-    })
-
-    yPos -= 18
-
-    // Segunda fila de datos
-    page.drawText("Email:", {
-      x: 50,
-      y: yPos,
-      size: 9,
-      font: boldFont,
-      color: rgb(0.2, 0.2, 0.2),
-    })
-
-    page.drawText(selectedCustomer?.email || "No especificado", {
-      x: 100,
-      y: yPos,
-      size: 9,
-      font,
-      color: rgb(0.3, 0.3, 0.3),
-    })
-
-    page.drawText("Teléfono:", {
-      x: 320,
-      y: yPos,
-      size: 9,
-      font: boldFont,
-      color: rgb(0.2, 0.2, 0.2),
-    })
-
-    page.drawText(selectedCustomer?.phone || "No especificado", {
-      x: 410,
-      y: yPos,
-      size: 9,
-      font,
-      color: rgb(0.3, 0.3, 0.3),
-    })
-
-    yPos -= 35
-
-    // Table header
-    page.drawRectangle({
-      x: 40,
-      y: yPos - 20,
-      width: width - 80,
-      height: 20,
-      color: rgb(0.25, 0.47, 0.75),
-    })
-
-    page.drawText("Código", { x: 50, y: yPos - 13, size: 9, font: boldFont, color: rgb(1, 1, 1) })
-    page.drawText("Producto", { x: 130, y: yPos - 13, size: 9, font: boldFont, color: rgb(1, 1, 1) })
-    page.drawText("Cant.", { x: 360, y: yPos - 13, size: 9, font: boldFont, color: rgb(1, 1, 1) })
-    page.drawText("Precio Unit.", { x: 410, y: yPos - 13, size: 9, font: boldFont, color: rgb(1, 1, 1) })
-    page.drawText("Importe", { x: 490, y: yPos - 13, size: 9, font: boldFont, color: rgb(1, 1, 1) })
-
-    yPos -= 25
-
-    // Table rows
-    items.forEach((item, index) => {
-      if (index % 2 === 0) {
-        page.drawRectangle({
-          x: 40,
-          y: yPos - 18,
-          width: width - 80,
-          height: 20,
-          color: rgb(0.98, 0.98, 0.98),
-        })
-      }
-
-      page.drawText(item.productCode || "-", { x: 50, y: yPos - 12, size: 9, font, color: rgb(0.2, 0.2, 0.2) })
-      page.drawText(item.productName.substring(0, 30), {
-        x: 130,
-        y: yPos - 12,
-        size: 9,
-        font,
-        color: rgb(0.2, 0.2, 0.2),
+      // Header background
+      page.drawRectangle({
+        x: 0,
+        y: height - 100,
+        width: width,
+        height: 100,
+        color: rgb(0.98, 0.98, 0.99),
       })
-      page.drawText(item.quantity.toString(), { x: 370, y: yPos - 12, size: 9, font, color: rgb(0.2, 0.2, 0.2) })
-      page.drawText(`$${item.price.toFixed(2)}`, { x: 415, y: yPos - 12, size: 9, font, color: rgb(0.2, 0.2, 0.2) })
-      page.drawText(`$${calculateItemTotal(item).toFixed(2)}`, {
-        x: 490,
-        y: yPos - 12,
+
+      let logoWidth = 0
+      if (companySettings?.logoUrl) {
+        try {
+          const logoResponse = await fetch(companySettings.logoUrl)
+          const logoBytes = await logoResponse.arrayBuffer()
+
+          let logoImage
+          const contentType = logoResponse.headers.get("content-type")
+          if (contentType?.includes("png")) {
+            logoImage = await pdfDoc.embedPng(logoBytes)
+          } else if (contentType?.includes("jpeg") || contentType?.includes("jpg")) {
+            logoImage = await pdfDoc.embedJpg(logoBytes)
+          } else {
+            logoImage = await pdfDoc.embedPng(logoBytes)
+          }
+
+          const maxHeight = 50
+          const aspectRatio = logoImage.width / logoImage.height
+          const logoHeight = maxHeight
+          logoWidth = maxHeight * aspectRatio
+
+          page.drawImage(logoImage, {
+            x: 40,
+            y: height - 80,
+            width: logoWidth,
+            height: logoHeight,
+          })
+        } catch (error) {
+          console.error("Error loading logo:", error)
+        }
+      }
+
+      // Nombre de empresa al lado del logo
+      page.drawText(companySettings?.name || "Next Sale", {
+        x: 40 + logoWidth + 15,
+        y: height - 55,
+        size: 18,
+        font: boldFont,
+        color: rgb(0.1, 0.2, 0.4),
+      })
+
+      // Badge de factura rediseñado y mejor posicionado
+      const badgeWidth = 100
+      const badgeHeight = 60
+      const badgeX = width - badgeWidth - 40
+      const badgeY = height - 90
+
+      // Badge background
+      page.drawRectangle({
+        x: badgeX,
+        y: badgeY,
+        width: badgeWidth,
+        height: badgeHeight,
+        color: rgb(0.25, 0.47, 0.75),
+        borderRadius: 4,
+      })
+
+      // Texto "FACTURA"
+      page.drawText("FACTURA", {
+        x: badgeX + 20,
+        y: badgeY + 42,
+        size: 11,
+        font: boldFont,
+        color: rgb(1, 1, 1),
+      })
+
+      // Letra "C"
+      page.drawText("C", {
+        x: badgeX + 42,
+        y: badgeY + 25,
+        size: 18,
+        font: boldFont,
+        color: rgb(1, 1, 1),
+      })
+
+      // Número de factura
+      const invoiceNum = completedSaleNumber.toString().padStart(8, "0")
+      page.drawText(`N° ${invoiceNum}`, {
+        x: badgeX + 12,
+        y: badgeY + 8,
         size: 9,
         font: boldFont,
-        color: rgb(0.1, 0.4, 0.1),
+        color: rgb(1, 1, 1),
+      })
+
+      // Fecha debajo del badge
+      const saleDay = saleDate.getDate().toString().padStart(2, "0")
+      const saleMonth = (saleDate.getMonth() + 1).toString().padStart(2, "0")
+      const saleYear = saleDate.getFullYear()
+
+      page.drawText(`Fecha: ${saleDay}/${saleMonth}/${saleYear}`, {
+        x: badgeX,
+        y: badgeY - 15,
+        size: 9,
+        font,
+        color: rgb(0.3, 0.3, 0.3),
+      })
+
+      yPos = height - 120
+
+      // Customer section header
+      page.drawRectangle({
+        x: 40,
+        y: yPos - 22,
+        width: width - 80,
+        height: 22,
+        color: rgb(0.94, 0.95, 0.97),
+      })
+
+      page.drawText("DATOS DEL CLIENTE", {
+        x: 50,
+        y: yPos - 15,
+        size: 9,
+        font: boldFont,
+        color: rgb(0.2, 0.3, 0.5),
       })
 
       yPos -= 22
-    })
 
-    yPos = 180
+      // Customer data box
+      page.drawRectangle({
+        x: 40,
+        y: yPos - 50,
+        width: width - 80,
+        height: 50,
+        borderColor: rgb(0.85, 0.85, 0.85),
+        borderWidth: 1,
+        color: rgb(1, 1, 1),
+      })
 
-    // Subtotal
-    page.drawText("Subtotal:", {
-      x: width - 220,
-      y: yPos,
-      size: 10,
-      font: boldFont,
-      color: rgb(0.3, 0.3, 0.3),
-    })
+      yPos -= 15
 
-    page.drawText(`$${calculateSubtotal().toFixed(2)}`, {
-      x: width - 130,
-      y: yPos,
-      size: 10,
-      font,
-      color: rgb(0.3, 0.3, 0.3),
-    })
+      // Primera fila de datos
+      const customerName = selectedCustomer?.name || "Consumidor Final"
+      page.drawText("Cliente:", {
+        x: 50,
+        y: yPos,
+        size: 9,
+        font: boldFont,
+        color: rgb(0.2, 0.2, 0.2),
+      })
 
-    yPos -= 20
+      page.drawText(customerName, {
+        x: 100,
+        y: yPos,
+        size: 9,
+        font,
+        color: rgb(0.3, 0.3, 0.3),
+      })
 
-    // Descuento (si existe)
-    if (calculateTotalDiscount() > 0) {
-      page.drawText("Descuento:", {
+      page.drawText("Condición IVA:", {
+        x: 320,
+        y: yPos,
+        size: 9,
+        font: boldFont,
+        color: rgb(0.2, 0.2, 0.2),
+      })
+
+      page.drawText("Consumidor Final", {
+        x: 410,
+        y: yPos,
+        size: 9,
+        font,
+        color: rgb(0.3, 0.3, 0.3),
+      })
+
+      yPos -= 18
+
+      // Segunda fila de datos
+      page.drawText("Email:", {
+        x: 50,
+        y: yPos,
+        size: 9,
+        font: boldFont,
+        color: rgb(0.2, 0.2, 0.2),
+      })
+
+      page.drawText(selectedCustomer?.email || "No especificado", {
+        x: 100,
+        y: yPos,
+        size: 9,
+        font,
+        color: rgb(0.3, 0.3, 0.3),
+      })
+
+      page.drawText("Teléfono:", {
+        x: 320,
+        y: yPos,
+        size: 9,
+        font: boldFont,
+        color: rgb(0.2, 0.2, 0.2),
+      })
+
+      page.drawText(selectedCustomer?.phone || "No especificado", {
+        x: 410,
+        y: yPos,
+        size: 9,
+        font,
+        color: rgb(0.3, 0.3, 0.3),
+      })
+
+      yPos -= 35
+
+      // Table header
+      page.drawRectangle({
+        x: 40,
+        y: yPos - 20,
+        width: width - 80,
+        height: 20,
+        color: rgb(0.25, 0.47, 0.75),
+      })
+
+      page.drawText("Código", { x: 50, y: yPos - 13, size: 9, font: boldFont, color: rgb(1, 1, 1) })
+      page.drawText("Producto", { x: 130, y: yPos - 13, size: 9, font: boldFont, color: rgb(1, 1, 1) })
+      page.drawText("Cant.", { x: 360, y: yPos - 13, size: 9, font: boldFont, color: rgb(1, 1, 1) })
+      page.drawText("Precio Unit.", { x: 410, y: yPos - 13, size: 9, font: boldFont, color: rgb(1, 1, 1) })
+      page.drawText("Importe", { x: 490, y: yPos - 13, size: 9, font: boldFont, color: rgb(1, 1, 1) })
+
+      yPos -= 25
+
+      // Table rows
+      items.forEach((item, index) => {
+        if (index % 2 === 0) {
+          page.drawRectangle({
+            x: 40,
+            y: yPos - 18,
+            width: width - 80,
+            height: 20,
+            color: rgb(0.98, 0.98, 0.98),
+          })
+        }
+
+        page.drawText(item.productCode || "-", { x: 50, y: yPos - 12, size: 9, font, color: rgb(0.2, 0.2, 0.2) })
+        page.drawText(item.productName.substring(0, 30), {
+          x: 130,
+          y: yPos - 12,
+          size: 9,
+          font,
+          color: rgb(0.2, 0.2, 0.2),
+        })
+        page.drawText(item.quantity.toString(), { x: 370, y: yPos - 12, size: 9, font, color: rgb(0.2, 0.2, 0.2) })
+        page.drawText(`$${item.price.toFixed(2)}`, { x: 415, y: yPos - 12, size: 9, font, color: rgb(0.2, 0.2, 0.2) })
+        page.drawText(`$${calculateItemTotal(item).toFixed(2)}`, {
+          x: 490,
+          y: yPos - 12,
+          size: 9,
+          font: boldFont,
+          color: rgb(0.1, 0.4, 0.1),
+        })
+
+        yPos -= 22
+      })
+
+      yPos = 180
+
+      // Subtotal
+      page.drawText("Subtotal:", {
         x: width - 220,
         y: yPos,
         size: 10,
         font: boldFont,
-        color: rgb(0.7, 0.2, 0.2),
+        color: rgb(0.3, 0.3, 0.3),
       })
 
-      page.drawText(`-$${calculateTotalDiscount().toFixed(2)}`, {
+      page.drawText(`$${calculateSubtotal().toFixed(2)}`, {
         x: width - 130,
         y: yPos,
         size: 10,
         font,
-        color: rgb(0.7, 0.2, 0.2),
+        color: rgb(0.3, 0.3, 0.3),
       })
 
-      yPos -= 25
+      yPos -= 20
+
+      // Descuento (si existe)
+      if (calculateTotalDiscount() > 0) {
+        page.drawText("Descuento:", {
+          x: width - 220,
+          y: yPos,
+          size: 10,
+          font: boldFont,
+          color: rgb(0.7, 0.2, 0.2),
+        })
+
+        page.drawText(`-$${calculateTotalDiscount().toFixed(2)}`, {
+          x: width - 130,
+          y: yPos,
+          size: 10,
+          font,
+          color: rgb(0.7, 0.2, 0.2),
+        })
+
+        yPos -= 25
+      }
+
+      // Total box
+      page.drawRectangle({
+        x: width - 230,
+        y: yPos - 12,
+        width: 190,
+        height: 35,
+        color: rgb(0.25, 0.47, 0.75),
+        borderRadius: 4,
+      })
+
+      page.drawText("TOTAL:", {
+        x: width - 215,
+        y: yPos,
+        size: 13,
+        font: boldFont,
+        color: rgb(1, 1, 1),
+      })
+
+      page.drawText(`$${calculateTotal().toFixed(2)}`, {
+        x: width - 125,
+        y: yPos,
+        size: 13,
+        font: boldFont,
+        color: rgb(1, 1, 1),
+      })
+
+      page.drawLine({
+        start: { x: 40, y: 70 },
+        end: { x: width - 40, y: 70 },
+        thickness: 1,
+        color: rgb(0.85, 0.85, 0.85),
+      })
+
+      page.drawText("Comprobante generado con Next Sale - Sistema de Gestión de Ventas", {
+        x: width / 2 - 175,
+        y: 50,
+        size: 8,
+        font,
+        color: rgb(0.5, 0.5, 0.5),
+      })
+
+      page.drawText("www.nextsale.com.ar", {
+        x: width / 2 - 50,
+        y: 35,
+        size: 8,
+        font,
+        color: rgb(0.6, 0.6, 0.6),
+      })
+
+      const pdfBytes = await pdfDoc.save()
+      const blob = new Blob([pdfBytes], { type: "application/pdf" })
+      const url = URL.createObjectURL(blob)
+      window.open(url, "_blank")
+    } catch (error) {
+      console.error("Error generating PDF:", error)
+      alert("Error al generar la factura. Por favor, intente nuevamente.")
     }
-
-    // Total box
-    page.drawRectangle({
-      x: width - 230,
-      y: yPos - 12,
-      width: 190,
-      height: 35,
-      color: rgb(0.25, 0.47, 0.75),
-      borderRadius: 4,
-    })
-
-    page.drawText("TOTAL:", {
-      x: width - 215,
-      y: yPos,
-      size: 13,
-      font: boldFont,
-      color: rgb(1, 1, 1),
-    })
-
-    page.drawText(`$${calculateTotal().toFixed(2)}`, {
-      x: width - 125,
-      y: yPos,
-      size: 13,
-      font: boldFont,
-      color: rgb(1, 1, 1),
-    })
-
-    page.drawLine({
-      start: { x: 40, y: 70 },
-      end: { x: width - 40, y: 70 },
-      thickness: 1,
-      color: rgb(0.85, 0.85, 0.85),
-    })
-
-    page.drawText("Comprobante generado con Next Sale - Sistema de Gestión de Ventas", {
-      x: width / 2 - 175,
-      y: 50,
-      size: 8,
-      font,
-      color: rgb(0.5, 0.5, 0.5),
-    })
-
-    page.drawText("www.nextsale.com.ar", {
-      x: width / 2 - 50,
-      y: 35,
-      size: 8,
-      font,
-      color: rgb(0.6, 0.6, 0.6),
-    })
-
-    const pdfBytes = await pdfDoc.save()
-    const blob = new Blob([pdfBytes], { type: "application/pdf" })
-    const url = URL.createObjectURL(blob)
-    window.open(url, "_blank")
   }
 
   const generateTicketInvoice = async () => {
-    const { PDFDocument, rgb, StandardFonts } = await import("pdf-lib")
+    try {
+      const { PDFDocument, rgb, StandardFonts } = await import("pdf-lib")
 
-    const pdfDoc = await PDFDocument.create()
-    const page = pdfDoc.addPage([226, 800])
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+      const pdfDoc = await PDFDocument.create()
+      const page = pdfDoc.addPage([226, 800])
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
 
-    const { width, height } = page.getSize()
-    const centerX = width / 2
-    let yPos = height - 20
+      const { width, height } = page.getSize()
+      const centerX = width / 2
+      let yPos = height - 30
 
-    if (companySettings?.logoUrl) {
-      try {
-        const logoResponse = await fetch(companySettings.logoUrl)
-        const logoBytes = await logoResponse.arrayBuffer()
-        const logoImage = await pdfDoc.embedPng(logoBytes)
-        const logoDims = logoImage.scale(0.06)
-        page.drawImage(logoImage, {
-          x: centerX - logoDims.width / 2,
-          y: yPos,
-          width: logoDims.width,
-          height: logoDims.height,
-        })
-        yPos -= logoDims.height + 8
-      } catch (error) {
-        console.error("[v0] Error loading logo:", error)
+      if (companySettings?.logoUrl) {
+        try {
+          const logoResponse = await fetch(companySettings.logoUrl)
+          const logoBytes = await logoResponse.arrayBuffer()
+
+          let logoImage
+          const contentType = logoResponse.headers.get("content-type")
+          if (contentType?.includes("png")) {
+            logoImage = await pdfDoc.embedPng(logoBytes)
+          } else if (contentType?.includes("jpeg") || contentType?.includes("jpg")) {
+            logoImage = await pdfDoc.embedJpg(logoBytes)
+          } else {
+            logoImage = await pdfDoc.embedPng(logoBytes)
+          }
+
+          const maxHeight = 40
+          const aspectRatio = logoImage.width / logoImage.height
+          const logoHeight = maxHeight
+          const logoWidth = maxHeight * aspectRatio
+
+          page.drawImage(logoImage, {
+            x: centerX - logoWidth / 2,
+            y: yPos - logoHeight,
+            width: logoWidth,
+            height: logoHeight,
+          })
+          yPos -= logoHeight + 10
+        } catch (error) {
+          console.error("Error loading logo:", error)
+          yPos -= 10
+        }
       }
-    }
 
-    const companyName = companySettings?.name || "NEXT SALE"
-    const companyNameWidth = companyName.length * 6
-    page.drawText(companyName, {
-      x: centerX - companyNameWidth / 2,
-      y: yPos,
-      size: 13,
-      font: boldFont,
-      color: rgb(0.1, 0.2, 0.4),
-    })
-
-    yPos -= 15
-    page.drawLine({
-      start: { x: 10, y: yPos },
-      end: { x: width - 10, y: yPos },
-      thickness: 2,
-      color: rgb(0.2, 0.4, 0.7),
-    })
-
-    yPos -= 20
-    page.drawText(`FACTURA C`, {
-      x: centerX - 30,
-      y: yPos,
-      size: 10,
-      font: boldFont,
-      color: rgb(0.2, 0.2, 0.2),
-    })
-
-    yPos -= 15
-    const invoiceNum = completedSaleNumber.toString().padStart(8, "0")
-    page.drawText(`N° ${invoiceNum}`, {
-      x: centerX - 35,
-      y: yPos,
-      size: 9,
-      font,
-      color: rgb(0.3, 0.3, 0.3),
-    })
-
-    yPos -= 12
-    page.drawText(formatDateTime(saleDate), {
-      x: centerX - 50,
-      y: yPos,
-      size: 7,
-      font,
-      color: rgb(0.4, 0.4, 0.4),
-    })
-
-    yPos -= 15
-    page.drawLine({
-      start: { x: 10, y: yPos },
-      end: { x: width - 10, y: yPos },
-      thickness: 1,
-      dashArray: [3, 3],
-      color: rgb(0.7, 0.7, 0.7),
-    })
-
-    yPos -= 15
-    const customerName = selectedCustomer?.name || "Consumidor Final"
-    page.drawText("Cliente:", { x: 10, y: yPos, size: 7, font: boldFont, color: rgb(0.2, 0.2, 0.2) })
-    yPos -= 10
-    page.drawText(customerName.substring(0, 28), { x: 10, y: yPos, size: 7, font, color: rgb(0.3, 0.3, 0.3) })
-
-    yPos -= 15
-    page.drawLine({
-      start: { x: 10, y: yPos },
-      end: { x: width - 10, y: yPos },
-      thickness: 1,
-      dashArray: [3, 3],
-      color: rgb(0.7, 0.7, 0.7),
-    })
-
-    yPos -= 15
-    items.forEach((item) => {
-      page.drawText(item.productName.substring(0, 28), {
-        x: 10,
+      const companyName = companySettings?.name || "NEXT SALE"
+      const companyNameWidth = companyName.length * 6
+      page.drawText(companyName, {
+        x: centerX - companyNameWidth / 2,
         y: yPos,
-        size: 7,
+        size: 13,
+        font: boldFont,
+        color: rgb(0.1, 0.2, 0.4),
+      })
+
+      yPos -= 15
+      page.drawLine({
+        start: { x: 10, y: yPos },
+        end: { x: width - 10, y: yPos },
+        thickness: 2,
+        color: rgb(0.2, 0.4, 0.7),
+      })
+
+      yPos -= 20
+      page.drawText(`FACTURA C`, {
+        x: centerX - 30,
+        y: yPos,
+        size: 10,
         font: boldFont,
         color: rgb(0.2, 0.2, 0.2),
       })
-      yPos -= 10
-      page.drawText(`${item.quantity} x ${formatCurrency(item.price)}`, {
-        x: 10,
+
+      yPos -= 15
+      const invoiceNum = completedSaleNumber.toString().padStart(8, "0")
+      page.drawText(`N° ${invoiceNum}`, {
+        x: centerX - 35,
         y: yPos,
-        size: 6,
+        size: 9,
+        font,
+        color: rgb(0.3, 0.3, 0.3),
+      })
+
+      yPos -= 12
+      page.drawText(formatDateTime(saleDate), {
+        x: centerX - 50,
+        y: yPos,
+        size: 7,
         font,
         color: rgb(0.4, 0.4, 0.4),
       })
-      page.drawText(formatCurrency(calculateItemTotal(item)), {
-        x: width - 65,
+
+      yPos -= 15
+      page.drawLine({
+        start: { x: 10, y: yPos },
+        end: { x: width - 10, y: yPos },
+        thickness: 1,
+        dashArray: [3, 3],
+        color: rgb(0.7, 0.7, 0.7),
+      })
+
+      yPos -= 15
+      const customerName = selectedCustomer?.name || "Consumidor Final"
+      page.drawText("Cliente:", { x: 10, y: yPos, size: 7, font: boldFont, color: rgb(0.2, 0.2, 0.2) })
+      yPos -= 10
+      page.drawText(customerName.substring(0, 28), { x: 10, y: yPos, size: 7, font, color: rgb(0.3, 0.3, 0.3) })
+
+      yPos -= 15
+      page.drawLine({
+        start: { x: 10, y: yPos },
+        end: { x: width - 10, y: yPos },
+        thickness: 1,
+        dashArray: [3, 3],
+        color: rgb(0.7, 0.7, 0.7),
+      })
+
+      yPos -= 15
+      items.forEach((item) => {
+        page.drawText(item.productName.substring(0, 28), {
+          x: 10,
+          y: yPos,
+          size: 7,
+          font: boldFont,
+          color: rgb(0.2, 0.2, 0.2),
+        })
+        yPos -= 10
+        page.drawText(`${item.quantity} x ${formatCurrency(item.price)}`, {
+          x: 10,
+          y: yPos,
+          size: 6,
+          font,
+          color: rgb(0.4, 0.4, 0.4),
+        })
+        page.drawText(formatCurrency(calculateItemTotal(item)), {
+          x: width - 65,
+          y: yPos,
+          size: 7,
+          font: boldFont,
+          color: rgb(0.1, 0.3, 0.1),
+        })
+        yPos -= 13
+      })
+
+      yPos -= 8
+      page.drawLine({
+        start: { x: 10, y: yPos },
+        end: { x: width - 10, y: yPos },
+        thickness: 2,
+        color: rgb(0.2, 0.4, 0.7),
+      })
+
+      yPos -= 18
+      page.drawText("TOTAL:", {
+        x: 10,
         y: yPos,
-        size: 7,
+        size: 11,
+        font: boldFont,
+        color: rgb(0.1, 0.2, 0.4),
+      })
+      page.drawText(formatCurrency(calculateTotal()), {
+        x: width - 85,
+        y: yPos,
+        size: 11,
         font: boldFont,
         color: rgb(0.1, 0.3, 0.1),
       })
-      yPos -= 13
-    })
 
-    yPos -= 8
-    page.drawLine({
-      start: { x: 10, y: yPos },
-      end: { x: width - 10, y: yPos },
-      thickness: 2,
-      color: rgb(0.2, 0.4, 0.7),
-    })
+      yPos -= 20
+      page.drawLine({
+        start: { x: 10, y: yPos },
+        end: { x: width - 10, y: yPos },
+        thickness: 1,
+        dashArray: [3, 3],
+        color: rgb(0.7, 0.7, 0.7),
+      })
 
-    yPos -= 18
-    page.drawText("TOTAL:", {
-      x: 10,
-      y: yPos,
-      size: 11,
-      font: boldFont,
-      color: rgb(0.1, 0.2, 0.4),
-    })
-    page.drawText(formatCurrency(calculateTotal()), {
-      x: width - 85,
-      y: yPos,
-      size: 11,
-      font: boldFont,
-      color: rgb(0.1, 0.3, 0.1),
-    })
+      yPos -= 15
+      page.drawText("¡Gracias por su compra!", {
+        x: centerX - 45,
+        y: yPos,
+        size: 8,
+        font: boldFont,
+        color: rgb(0.2, 0.4, 0.7),
+      })
 
-    yPos -= 20
-    page.drawLine({
-      start: { x: 10, y: yPos },
-      end: { x: width - 10, y: yPos },
-      thickness: 1,
-      dashArray: [3, 3],
-      color: rgb(0.7, 0.7, 0.7),
-    })
+      yPos -= 12
+      page.drawText("Next Sale", {
+        x: centerX - 22,
+        y: yPos,
+        size: 7,
+        font,
+        color: rgb(0.5, 0.5, 0.5),
+      })
 
-    yPos -= 15
-    page.drawText("¡Gracias por su compra!", {
-      x: centerX - 45,
-      y: yPos,
-      size: 8,
-      font: boldFont,
-      color: rgb(0.2, 0.4, 0.7),
-    })
-
-    yPos -= 12
-    page.drawText("Next Sale", {
-      x: centerX - 22,
-      y: yPos,
-      size: 7,
-      font,
-      color: rgb(0.5, 0.5, 0.5),
-    })
-
-    const pdfBytes = await pdfDoc.save()
-    const blob = new Blob([pdfBytes], { type: "application/pdf" })
-    const url = URL.createObjectURL(blob)
-    window.open(url, "_blank")
+      const pdfBytes = await pdfDoc.save()
+      const blob = new Blob([pdfBytes], { type: "application/pdf" })
+      const url = URL.createObjectURL(blob)
+      window.open(url, "_blank")
+    } catch (error) {
+      console.error("Error generating ticket:", error)
+      alert("Error al generar el ticket. Por favor, intente nuevamente.")
+    }
   }
 
   const [manualProduct, setManualProduct] = useState({
