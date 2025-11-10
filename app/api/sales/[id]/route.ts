@@ -108,7 +108,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
             },
           })
         } catch (error) {
-          console.log("[v0] Product not found, skipping stock restore:", item.productId)
+          // Producto fue eliminado, continuar sin error
+          console.log("Product not found, skipping stock restore:", item.productId)
         }
       }
     }
@@ -123,7 +124,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("[v0] Error deleting sale:", error)
+    console.error("Error deleting sale:", error)
     return NextResponse.json({ error: "Failed to delete sale" }, { status: 500 })
   }
 }

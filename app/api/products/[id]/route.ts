@@ -2,10 +2,10 @@ import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
 
     const product = await db.product.findFirst({
       where: {
@@ -29,10 +29,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
     const { sku, name, categoryId, supplierId, costPrice, price, stock, stockIdeal, stockMinimo, imageUrl } = body
@@ -72,32 +72,52 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params
+    console.log("[v0] === DELETE PRODUCT START ===")
 
-    const companyId = await getCompanyId()
+    const { id } = await params
+    console.log("[v0] Product ID:", id)
+
+    let companyId: string
+    try {
+      companyId = await getCompanyId()
+      console.log("[v0] Company ID obtained:", companyId)
+    } catch (error) {
+      console.error("[v0] Error getting companyId:", error)
+      return NextResponse.json({ error: "Error de autenticación" }, { status: 401 })
+    }
 
     const product = await db.product.findFirst({
       where: { id, companyId },
     })
 
+    console.log("[v0] Product found:", product ? `yes (${product.name})` : "no")
+
     if (!product) {
       return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
     }
 
-    await db.saleItem.updateMany({
+    console.log("[v0] Nullifying sale items references...")
+    const updateResult = await db.saleItem.updateMany({
       where: { productId: id },
       data: { productId: null },
     })
+    console.log("[v0] Sale items updated:", updateResult.count)
 
+    console.log("[v0] Deleting product from database...")
     await db.product.delete({
       where: { id },
     })
+    console.log("[v0] Product deleted successfully!")
 
+    console.log("[v0] === DELETE PRODUCT END (SUCCESS) ===")
     return NextResponse.json({ success: true, message: "Producto eliminado correctamente" })
   } catch (error) {
-    console.error("[v0] Error deleting product:", error)
+    console.error("[v0] === DELETE PRODUCT ERROR ===")
+    console.error("[v0] Error details:", error)
+    console.error("[v0] Error message:", error instanceof Error ? error.message : "Unknown")
+    console.error("[v0] Error stack:", error instanceof Error ? error.stack : "N/A")
 
     return NextResponse.json(
       {

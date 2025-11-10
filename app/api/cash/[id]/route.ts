@@ -8,13 +8,29 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const companyId = await getCompanyId()
     const { id } = await params
 
-    const result = await db.cashMovement.deleteMany({
+    const cashMovement = await db.cashMovement.findFirst({
       where: { id, companyId },
     })
 
-    if (result.count === 0) {
+    if (!cashMovement) {
       return NextResponse.json({ error: "Cash movement not found" }, { status: 404 })
     }
+
+    await db.cashMovement.delete({
+      where: { id },
+    })
+
+    await db.auditLog.create({
+      data: {
+        companyId,
+        action: "DELETE_CASH_MOVEMENT",
+        entityType: "CashMovement",
+        entityId: id,
+        entityName: `${cashMovement.type === "ingreso" ? "Ingreso" : "Egreso"} - $${cashMovement.amount}`,
+        oldValues: JSON.stringify({ type: cashMovement.type, amount: cashMovement.amount, note: cashMovement.note }),
+        newValues: null,
+      },
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

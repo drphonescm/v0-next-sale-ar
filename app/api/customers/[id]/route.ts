@@ -40,11 +40,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const { name, email, phone } = body
 
-    const updatedCustomer = await db.customer.updateMany({
-      where: {
-        id,
-        companyId,
-      },
+    const oldCustomer = await db.customer.findFirst({
+      where: { id, companyId },
+    })
+
+    if (!oldCustomer) {
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 })
+    }
+
+    const updatedCustomer = await db.customer.update({
+      where: { id },
       data: {
         ...(name !== undefined && { name }),
         ...(email !== undefined && { email }),
@@ -52,15 +57,23 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       },
     })
 
-    if (updatedCustomer.count === 0) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 })
-    }
-
-    const customer = await db.customer.findUnique({
-      where: { id },
+    await db.auditLog.create({
+      data: {
+        companyId,
+        action: "UPDATE_CUSTOMER",
+        entityType: "Customer",
+        entityId: id,
+        entityName: updatedCustomer.name,
+        oldValues: JSON.stringify({ name: oldCustomer.name, email: oldCustomer.email, phone: oldCustomer.phone }),
+        newValues: JSON.stringify({
+          name: updatedCustomer.name,
+          email: updatedCustomer.email,
+          phone: updatedCustomer.phone,
+        }),
+      },
     })
 
-    return NextResponse.json(customer)
+    return NextResponse.json(updatedCustomer)
   } catch (error) {
     console.error("[v0] Error updating customer:", error)
     return NextResponse.json({ error: "Failed to update customer" }, { status: 500 })
@@ -73,13 +86,29 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const companyId = await getCompanyId()
     const { id } = params
 
-    const result = await db.customer.deleteMany({
+    const customer = await db.customer.findFirst({
       where: { id, companyId },
     })
 
-    if (result.count === 0) {
+    if (!customer) {
       return NextResponse.json({ error: "Customer not found" }, { status: 404 })
     }
+
+    await db.customer.delete({
+      where: { id },
+    })
+
+    await db.auditLog.create({
+      data: {
+        companyId,
+        action: "DELETE_CUSTOMER",
+        entityType: "Customer",
+        entityId: id,
+        entityName: customer.name,
+        oldValues: JSON.stringify({ name: customer.name, email: customer.email, phone: customer.phone }),
+        newValues: null,
+      },
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {
