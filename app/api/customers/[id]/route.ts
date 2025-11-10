@@ -3,10 +3,10 @@ import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 
 // GET /api/customers/[id] - Get a single customer
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
 
     const customer = await db.customer.findFirst({
       where: {
@@ -33,13 +33,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT /api/customers/[id] - Update a customer
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
-    const { name, email, phone, creditLimit } = body
+    const { name, email, phone } = body
 
     const customer = await db.customer.findFirst({
       where: { id, companyId },
@@ -55,7 +55,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         ...(name !== undefined && { name }),
         ...(email !== undefined && { email }),
         ...(phone !== undefined && { phone }),
-        ...(creditLimit !== undefined && { creditLimit: Number.parseFloat(creditLimit) }),
       },
     })
 
@@ -67,10 +66,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/customers/[id] - Delete a customer
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
 
     const customer = await db.customer.findFirst({
       where: { id, companyId },
