@@ -8,35 +8,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const companyId = await getCompanyId()
     const { id } = await params
 
-    const cashMovement = await db.cashMovement.findFirst({
+    const result = await db.cashMovement.deleteMany({
       where: { id, companyId },
     })
 
-    if (!cashMovement) {
+    if (result.count === 0) {
       return NextResponse.json({ error: "Cash movement not found" }, { status: 404 })
-    }
-
-    await db.cashMovement.delete({
-      where: { id },
-    })
-
-    try {
-      await db.auditLog.create({
-        data: {
-          companyId,
-          userId: null,
-          action: "DELETE_CASH_MOVEMENT",
-          entityType: "CashMovement",
-          entityId: id,
-          entityName: `${cashMovement.type === "ingreso" ? "Ingreso" : "Egreso"} - $${cashMovement.amount}`,
-          oldValues: JSON.stringify({ type: cashMovement.type, amount: cashMovement.amount, note: cashMovement.note }),
-          newValues: null,
-          ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
-          userAgent: request.headers.get("user-agent") || "unknown",
-        },
-      })
-    } catch (auditError) {
-      console.error("[v0] Error creating audit log (non-critical):", auditError)
     }
 
     return NextResponse.json({ success: true })

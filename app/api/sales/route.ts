@@ -154,31 +154,6 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Stock updated successfully")
 
-    try {
-      await db.auditLog.create({
-        data: {
-          companyId,
-          userId: null,
-          action: "CREATE_SALE",
-          entityType: "Sale",
-          entityId: sale.id,
-          entityName: `Venta #${sale.internalNumber}`,
-          oldValues: null,
-          newValues: JSON.stringify({
-            internalNumber: sale.internalNumber,
-            total: sale.total,
-            status: sale.status,
-            itemsCount: sale.items.length,
-            customerId: customerId || null,
-          }),
-          ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
-          userAgent: request.headers.get("user-agent") || "unknown",
-        },
-      })
-    } catch (auditError) {
-      console.error("[v0] Error creating audit log (non-critical):", auditError)
-    }
-
     return NextResponse.json(sale, { status: 201 })
   } catch (error) {
     console.error("[v0] Error creating sale:", error)

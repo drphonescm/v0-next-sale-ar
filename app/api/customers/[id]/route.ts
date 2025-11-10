@@ -40,16 +40,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const { name, email, phone } = body
 
-    const oldCustomer = await db.customer.findFirst({
-      where: { id, companyId },
-    })
-
-    if (!oldCustomer) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 })
-    }
-
-    const updatedCustomer = await db.customer.update({
-      where: { id },
+    const updatedCustomer = await db.customer.updateMany({
+      where: {
+        id,
+        companyId,
+      },
       data: {
         ...(name !== undefined && { name }),
         ...(email !== undefined && { email }),
@@ -57,30 +52,15 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       },
     })
 
-    try {
-      await db.auditLog.create({
-        data: {
-          companyId,
-          userId: null,
-          action: "UPDATE_CUSTOMER",
-          entityType: "Customer",
-          entityId: id,
-          entityName: updatedCustomer.name,
-          oldValues: JSON.stringify({ name: oldCustomer.name, email: oldCustomer.email, phone: oldCustomer.phone }),
-          newValues: JSON.stringify({
-            name: updatedCustomer.name,
-            email: updatedCustomer.email,
-            phone: updatedCustomer.phone,
-          }),
-          ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
-          userAgent: request.headers.get("user-agent") || "unknown",
-        },
-      })
-    } catch (auditError) {
-      console.error("[v0] Error creating audit log (non-critical):", auditError)
+    if (updatedCustomer.count === 0) {
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 })
     }
 
-    return NextResponse.json(updatedCustomer)
+    const customer = await db.customer.findUnique({
+      where: { id },
+    })
+
+    return NextResponse.json(customer)
   } catch (error) {
     console.error("[v0] Error updating customer:", error)
     return NextResponse.json({ error: "Failed to update customer" }, { status: 500 })
@@ -93,35 +73,12 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const companyId = await getCompanyId()
     const { id } = params
 
-    const customer = await db.customer.findFirst({
+    const result = await db.customer.deleteMany({
       where: { id, companyId },
     })
 
-    if (!customer) {
+    if (result.count === 0) {
       return NextResponse.json({ error: "Customer not found" }, { status: 404 })
-    }
-
-    await db.customer.delete({
-      where: { id },
-    })
-
-    try {
-      await db.auditLog.create({
-        data: {
-          companyId,
-          userId: null,
-          action: "DELETE_CUSTOMER",
-          entityType: "Customer",
-          entityId: id,
-          entityName: customer.name,
-          oldValues: JSON.stringify({ name: customer.name, email: customer.email, phone: customer.phone }),
-          newValues: null,
-          ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
-          userAgent: request.headers.get("user-agent") || "unknown",
-        },
-      })
-    } catch (auditError) {
-      console.error("[v0] Error creating audit log (non-critical):", auditError)
     }
 
     return NextResponse.json({ success: true })
