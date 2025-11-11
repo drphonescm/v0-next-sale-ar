@@ -19,10 +19,12 @@ import {
   ShoppingCartIcon,
   SaveIcon,
   PencilIcon,
+  ReceiptIcon,
 } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { PaymentReceiptDialog } from "@/components/customers/payment-receipt-dialog"
 
 const fetcher = (url: string) =>
   fetch(url).then((res) => {
@@ -37,6 +39,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const { data: customer, error, mutate } = useSWR(`/api/customers/${id}`, fetcher)
 
   const [isEditing, setIsEditing] = useState(false)
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
   const [editData, setEditData] = useState({
     name: "",
     email: "",
@@ -137,12 +140,20 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             </p>
           </div>
         </div>
-        {!isEditing && (
-          <Button onClick={handleEdit}>
-            <PencilIcon />
-            {t("editCustomer")}
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {customer?.currentDebt > 0 && (
+            <Button variant="outline" onClick={() => setPaymentDialogOpen(true)}>
+              <ReceiptIcon />
+              Recibo de Pago
+            </Button>
+          )}
+          {!isEditing && (
+            <Button onClick={handleEdit}>
+              <PencilIcon />
+              {t("editCustomer")}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Customer Info Card */}
@@ -312,6 +323,20 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Payment Receipt Dialog */}
+      {customer && (
+        <PaymentReceiptDialog
+          open={paymentDialogOpen}
+          onOpenChange={setPaymentDialogOpen}
+          customer={{
+            id: customer.id,
+            name: customer.name,
+            currentDebt: customer.currentDebt || 0,
+          }}
+          onPaymentSuccess={() => mutate()}
+        />
+      )}
     </div>
   )
 }
