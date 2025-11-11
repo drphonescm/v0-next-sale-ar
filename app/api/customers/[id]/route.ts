@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
-import { createAuditLog } from "@/lib/audit-log"
 
 // GET /api/customers/[id] - Get a single customer
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
@@ -34,10 +33,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT /api/customers/[id] - Update a customer
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
     const { name, email, phone } = body
@@ -50,12 +49,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Customer not found" }, { status: 404 })
     }
 
-    const oldValues = {
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-    }
-
     const updatedCustomer = await db.customer.update({
       where: { id },
       data: {
@@ -63,21 +56,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         ...(email !== undefined && { email }),
         ...(phone !== undefined && { phone }),
       },
-    })
-
-    await createAuditLog({
-      companyId,
-      action: "UPDATE",
-      entityType: "Customer",
-      entityId: id,
-      entityName: updatedCustomer.name,
-      oldValues,
-      newValues: {
-        name: updatedCustomer.name,
-        email: updatedCustomer.email,
-        phone: updatedCustomer.phone,
-      },
-      request,
     })
 
     return NextResponse.json(updatedCustomer)
@@ -88,10 +66,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/customers/[id] - Delete a customer
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
 
     const customer = await db.customer.findFirst({
       where: { id, companyId },
@@ -103,22 +81,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     await db.customer.delete({
       where: { id },
-    })
-
-    await createAuditLog({
-      companyId,
-      action: "DELETE",
-      entityType: "Customer",
-      entityId: id,
-      entityName: customer.name,
-      oldValues: {
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        debt: customer.debt,
-      },
-      newValues: null,
-      request,
     })
 
     return NextResponse.json({ success: true })
