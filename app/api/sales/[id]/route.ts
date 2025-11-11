@@ -3,10 +3,10 @@ import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 
 // GET /api/sales/[id] - Get a single sale
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
 
     const sale = await db.sale.findFirst({
       where: {
@@ -29,16 +29,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(sale)
   } catch (error) {
-    console.error("[v0] Error in GET /api/sales/[id]:", error)
+    console.error("Error in GET /api/sales/[id]:", error)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 }
 
 // PUT /api/sales/[id] - Update a sale status
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
     const { status } = body
@@ -71,16 +71,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(updatedSale)
   } catch (error) {
-    console.error("[v0] Error updating sale:", error)
+    console.error("Error updating sale:", error)
     return NextResponse.json({ error: "Failed to update sale" }, { status: 500 })
   }
 }
 
 // DELETE /api/sales/[id] - Delete a sale
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
 
     const sale = await db.sale.findFirst({
       where: {
