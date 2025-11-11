@@ -29,7 +29,40 @@ export async function POST(request: NextRequest) {
     const companyId = await getCompanyId()
     const body = await request.json()
 
-    const { sku, name, categoryId, supplierId, costPrice, price, stock, stockIdeal, stockMinimo, imageUrl } = body
+    let { sku, name, categoryId, supplierId, costPrice, price, stock, stockIdeal, stockMinimo, imageUrl } = body
+
+    if (sku && sku.trim()) {
+      const existingProduct = await db.product.findFirst({
+        where: {
+          sku: sku.trim(),
+          companyId,
+        },
+      })
+
+      if (existingProduct) {
+        return NextResponse.json({ error: "El código SKU ya está en uso por otro producto" }, { status: 400 })
+      }
+    }
+
+    if (!sku || !sku.trim()) {
+      const lastProduct = await db.product.findFirst({
+        where: { companyId },
+        orderBy: { createdAt: "desc" },
+        select: { sku: true },
+      })
+
+      // Generar nuevo SKU numérico basado en el último
+      let nextNumber = 1
+      if (lastProduct?.sku) {
+        const match = lastProduct.sku.match(/\d+/)
+        if (match) {
+          nextNumber = Number.parseInt(match[0]) + 1
+        }
+      }
+
+      // Formato: 8 dígitos con ceros a la izquierda
+      sku = nextNumber.toString().padStart(8, "0")
+    }
 
     const newProduct = await db.product.create({
       data: {
