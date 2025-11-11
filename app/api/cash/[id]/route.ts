@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
+import { createAuditLog } from "@/lib/audit-log"
 
 // DELETE /api/cash/[id] - Delete a cash movement
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -20,16 +21,15 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       where: { id },
     })
 
-    await db.auditLog.create({
-      data: {
-        companyId,
-        action: "DELETE_CASH_MOVEMENT",
-        entityType: "CashMovement",
-        entityId: id,
-        entityName: `${cashMovement.type === "ingreso" ? "Ingreso" : "Egreso"} - $${cashMovement.amount}`,
-        oldValues: JSON.stringify({ type: cashMovement.type, amount: cashMovement.amount, note: cashMovement.note }),
-        newValues: null,
-      },
+    await createAuditLog({
+      companyId,
+      action: "DELETE",
+      entityType: "CashMovement",
+      entityId: id,
+      entityName: `${cashMovement.type === "ingreso" ? "Ingreso" : "Egreso"} - $${cashMovement.amount}`,
+      oldValues: { type: cashMovement.type, amount: cashMovement.amount, note: cashMovement.note },
+      newValues: null,
+      request,
     })
 
     return NextResponse.json({ success: true })

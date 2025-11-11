@@ -1,11 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
+import { createAuditLog } from "@/lib/audit-log"
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = await params
+    const { id } = params
 
     const product = await db.product.findFirst({
       where: {
@@ -29,10 +30,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = await params
+    const { id } = params
     const body = await request.json()
 
     const { sku, name, categoryId, supplierId, costPrice, price, stock, stockIdeal, stockMinimo, imageUrl } = body
@@ -43,6 +44,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 })
+    }
+
+    const oldValues = {
+      sku: product.sku,
+      name: product.name,
+      categoryId: product.categoryId,
+      supplierId: product.supplierId,
+      costPrice: product.costPrice,
+      price: product.price,
+      stock: product.stock,
+      stockIdeal: product.stockIdeal,
+      stockMinimo: product.stockMinimo,
+      imageUrl: product.imageUrl,
     }
 
     const updatedProduct = await db.product.update({
@@ -65,6 +79,28 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
     })
 
+    await createAuditLog({
+      companyId,
+      action: "UPDATE",
+      entityType: "Product",
+      entityId: id,
+      entityName: updatedProduct.name,
+      oldValues,
+      newValues: {
+        sku: updatedProduct.sku,
+        name: updatedProduct.name,
+        categoryId: updatedProduct.categoryId,
+        supplierId: updatedProduct.supplierId,
+        costPrice: updatedProduct.costPrice,
+        price: updatedProduct.price,
+        stock: updatedProduct.stock,
+        stockIdeal: updatedProduct.stockIdeal,
+        stockMinimo: updatedProduct.stockMinimo,
+        imageUrl: updatedProduct.imageUrl,
+      },
+      request,
+    })
+
     return NextResponse.json(updatedProduct)
   } catch (error) {
     console.error("[v0] Error updating product:", error)
@@ -72,11 +108,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     console.log("[v0] === DELETE PRODUCT START ===")
 
-    const { id } = await params
+    const { id } = params
     console.log("[v0] Product ID:", id)
 
     let companyId: string
@@ -110,6 +146,25 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       where: { id },
     })
     console.log("[v0] Product deleted successfully!")
+
+    await createAuditLog({
+      companyId,
+      action: "DELETE",
+      entityType: "Product",
+      entityId: id,
+      entityName: product.name,
+      oldValues: {
+        sku: product.sku,
+        name: product.name,
+        categoryId: product.categoryId,
+        supplierId: product.supplierId,
+        costPrice: product.costPrice,
+        price: product.price,
+        stock: product.stock,
+      },
+      newValues: null,
+      request,
+    })
 
     console.log("[v0] === DELETE PRODUCT END (SUCCESS) ===")
     return NextResponse.json({ success: true, message: "Producto eliminado correctamente" })
