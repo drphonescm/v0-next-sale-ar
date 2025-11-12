@@ -141,12 +141,14 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           </div>
         </div>
         <div className="flex gap-2">
-          {customer?.currentDebt > 0 && (
-            <Button variant="outline" onClick={() => setPaymentDialogOpen(true)}>
-              <ReceiptIcon />
-              Recibo de Pago
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            onClick={() => setPaymentDialogOpen(true)}
+            disabled={!customer?.currentDebt || customer.currentDebt <= 0}
+          >
+            <ReceiptIcon />
+            Recibo de Pago
+          </Button>
           {!isEditing && (
             <Button onClick={handleEdit}>
               <PencilIcon />
