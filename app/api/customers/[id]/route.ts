@@ -2,7 +2,6 @@ import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 
-// GET /api/customers/[id] - Get a single customer
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
@@ -12,9 +11,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       where: {
         id,
         companyId,
+        deletedAt: null,
       },
       include: {
         sales: {
+          where: {
+            deletedAt: null,
+          },
           orderBy: { createdAt: "desc" },
           take: 10,
         },
@@ -32,17 +35,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// PUT /api/customers/[id] - Update a customer
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
     const { id } = await params
     const body = await request.json()
 
-    const { name, email, phone, creditLimit } = body
+    const { name, email, phone, creditLimit, status } = body
 
     const customer = await db.customer.findFirst({
-      where: { id, companyId },
+      where: { id, companyId, deletedAt: null },
     })
 
     if (!customer) {
@@ -56,6 +58,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         ...(email !== undefined && { email }),
         ...(phone !== undefined && { phone }),
         ...(creditLimit !== undefined && { creditLimit: Number.parseFloat(creditLimit.toString()) || 0 }),
+        ...(status !== undefined && { status }),
       },
     })
 
@@ -66,22 +69,26 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// DELETE /api/customers/[id] - Delete a customer
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
     const { id } = await params
 
     const customer = await db.customer.findFirst({
-      where: { id, companyId },
+      where: { id, companyId, deletedAt: null },
     })
 
     if (!customer) {
       return NextResponse.json({ error: "Customer not found" }, { status: 404 })
     }
 
-    await db.customer.delete({
+    await db.customer.update({
       where: { id },
+      data: {
+        deletedAt: new Date(),
+        deletedBy: companyId, // Idealmente sería el userId
+        status: "inactive",
+      },
     })
 
     return NextResponse.json({ success: true })

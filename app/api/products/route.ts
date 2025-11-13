@@ -2,13 +2,15 @@ import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 
-// GET /api/products - List all products
 export async function GET(request: NextRequest) {
   try {
     const companyId = await getCompanyId()
 
     const products = await db.product.findMany({
-      where: { companyId },
+      where: {
+        companyId,
+        deletedAt: null,
+      },
       include: {
         category: true,
         supplier: true,
@@ -18,12 +20,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(products)
   } catch (error) {
-    console.error("[v0] Error fetching products:", error)
+    console.error("Error fetching products:", error)
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 })
   }
 }
 
-// POST /api/products - Create a new product
 export async function POST(request: NextRequest) {
   try {
     const companyId = await getCompanyId()
@@ -36,6 +37,7 @@ export async function POST(request: NextRequest) {
         where: {
           sku: sku.trim(),
           companyId,
+          deletedAt: null,
         },
       })
 
@@ -51,7 +53,6 @@ export async function POST(request: NextRequest) {
         select: { sku: true },
       })
 
-      // Generar nuevo SKU numérico basado en el último
       let nextNumber = 1
       if (lastProduct?.sku) {
         const match = lastProduct.sku.match(/\d+/)
@@ -60,7 +61,6 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Formato: 8 dígitos con ceros a la izquierda
       sku = nextNumber.toString().padStart(8, "0")
     }
 
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newProduct, { status: 201 })
   } catch (error) {
-    console.error("[v0] Error creating product:", error)
+    console.error("Error creating product:", error)
     return NextResponse.json({ error: "Failed to create product" }, { status: 500 })
   }
 }

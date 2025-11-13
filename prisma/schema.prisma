@@ -44,7 +44,13 @@ model Company {
   sales       Sale[]         @relation("CompanySales")
   cash        CashMovement[] @relation("CompanyCashMovements")
   auditLogs   AuditLog[]     @relation("CompanyAuditLogs")
-  suppliers   Supplier[]     // Agregando relación faltante con Supplier
+  suppliers   Supplier[]
+  documentSequences DocumentSequence[] @relation("CompanyDocumentSequences")
+  payments    Payment[]      @relation("CompanyPayments")
+  creditNotes CreditNote[]   @relation("CompanyCreditNotes")
+  debitNotes  DebitNote[]    @relation("CompanyDebitNotes")
+  quotes      Quote[]        @relation("CompanyQuotes")
+  deliveryNotes DeliveryNote[] @relation("CompanyDeliveryNotes")
 }
 
 // --- Productos ---
@@ -54,20 +60,24 @@ model Product {
   company     Company    @relation("CompanyProducts", fields: [companyId], references: [id])
   sku         String?
   name        String
-  categoryId  String?    // Relación con categoría/rubro
+  categoryId  String?    
   category    Category?  @relation(fields: [categoryId], references: [id])
-  supplierId  String?    // Relación con proveedor
+  supplierId  String?    
   supplier    Supplier?  @relation("ProductSupplier", fields: [supplierId], references: [id], onDelete: SetNull)
-  costPrice   Float      @default(0) // Precio de costo
-  price       Float      // Precio de venta final
+  costPrice   Float      @default(0) 
+  price       Float      
   stock       Int        @default(0)
-  stockIdeal  Int?       // Stock ideal
-  stockMinimo Int?       // Stock mínimo
+  stockIdeal  Int?       
+  stockMinimo Int?       
   imageUrl    String?
+  status      String     @default("active") // active | inactive | discontinued
+  deletedAt   DateTime?  // Soft delete
+  deletedBy   String?    // Usuario que eliminó
   createdAt   DateTime   @default(now())
 
-  // Relación con ítems de venta
   saleItems   SaleItem[]
+  quoteItems  QuoteItem[]
+  deliveryNoteItems DeliveryNoteItem[]
   
   @@unique([companyId, sku])
 }
@@ -80,12 +90,19 @@ model Customer {
   name        String
   email       String?
   phone       String?
-  creditLimit Float    @default(0) // Límite de crédito del cliente
-  currentDebt Float    @default(0) // Deuda actual del cliente
+  creditLimit Float    @default(0) 
+  currentDebt Float    @default(0) 
+  status      String   @default("active") // active | inactive | blocked
+  deletedAt   DateTime?
+  deletedBy   String?
   createdAt   DateTime @default(now())
 
-  // Relación con ventas
   sales       Sale[]
+  payments    Payment[] @relation("CustomerPayments")
+  creditNotes CreditNote[] @relation("CustomerCreditNotes")
+  debitNotes  DebitNote[]  @relation("CustomerDebitNotes")
+  quotes      Quote[]      @relation("CustomerQuotes")
+  deliveryNotes DeliveryNote[] @relation("CustomerDeliveryNotes")
 }
 
 // --- Ventas ---
@@ -96,12 +113,30 @@ model Sale {
   customerId     String?
   customer       Customer?  @relation(fields: [customerId], references: [id])
   total          Float
-  status         String     @default("completed") // completed | canceled | draft
-  internalNumber Int        // Ahora será numérico puro
+  status         String     @default("completed") // draft | completed | canceled | invoiced
+  internalNumber Int        
+  documentNumber String?    // Número de gestión correlativo (ej: "VTA-000001")
+  documentType   String     @default("SALE") // SALE | QUOTE | etc.
+  quoteId        String?    // Presupuesto del que viene esta venta
+  deliveryNoteId String?    // Remito asociado a esta venta
+  parentSaleId   String?    // Venta padre (si es una venta hija de presupuesto)
+  deletedAt      DateTime?
+  deletedBy      String?
+  canceledAt     DateTime?
+  canceledBy     String?
+  cancelReason   String?
+  cancelDocId    String?    // ID de la nota de crédito que canceló esta venta
   createdAt      DateTime   @default(now())
 
-  // Ítems asociados
   items          SaleItem[]
+  creditNotes    CreditNote[] @relation("SaleCreditNotes")
+  debitNotes     DebitNote[]  @relation("SaleDebitNotes")
+  quote          Quote?       @relation("QuoteSales", fields: [quoteId], references: [id])
+  deliveryNote   DeliveryNote? @relation("DeliveryNoteSales", fields: [deliveryNoteId], references: [id])
+  
+  @@index([companyId, documentNumber])
+  @@index([quoteId])
+  @@index([deliveryNoteId])
 }
 
 // --- Ítems de venta ---
@@ -118,13 +153,19 @@ model SaleItem {
 
 // --- Movimientos de caja ---
 model CashMovement {
-  id          String   @id @default(cuid())
-  companyId   String
-  company     Company  @relation("CompanyCashMovements", fields: [companyId], references: [id])
-  type        String   // ingreso | egreso
-  amount      Float
-  note        String?
-  createdAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  companyId      String
+  company        Company  @relation("CompanyCashMovements", fields: [companyId], references: [id])
+  type           String   // in | out
+  amount         Float
+  note           String?
+  documentNumber String?  // Número de gestión correlativo (ej: "ING-000001" o "EGR-000001")
+  documentType   String?  // CASH_IN | CASH_OUT
+  deletedAt      DateTime?
+  deletedBy      String?
+  createdAt      DateTime @default(now())
+  
+  @@index([companyId, documentNumber])
 }
 
 // --- Auditoría general ---
@@ -180,4 +221,146 @@ model Category {
   products    Product[]
   
   @@unique([companyId, name])
+}
+
+// --- Tabla de secuencias para números correlativos ---
+model DocumentSequence {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation("CompanyDocumentSequences", fields: [companyId], references: [id])
+  documentType String  // SALE | RECEIPT | CREDIT_NOTE | DEBIT_NOTE | PAYMENT | CASH_IN | CASH_OUT | QUOTE
+  prefix      String?  // Prefijo opcional (ej: "FC-", "NC-", "RBO-")
+  currentNumber Int    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([companyId, documentType])
+  @@index([companyId, documentType])
+}
+
+// --- Pagos/Recibos de clientes ---
+model Payment {
+  id             String    @id @default(cuid())
+  companyId      String
+  company        Company   @relation("CompanyPayments", fields: [companyId], references: [id])
+  customerId     String
+  customer       Customer  @relation("CustomerPayments", fields: [customerId], references: [id])
+  amount         Float
+  documentNumber String    // Número de gestión correlativo (ej: "RBO-000001")
+  documentType   String    @default("PAYMENT") // PAYMENT
+  note           String?
+  deletedAt      DateTime?
+  deletedBy      String?
+  createdAt      DateTime  @default(now())
+  
+  @@index([companyId, documentNumber])
+  @@index([customerId])
+}
+
+model CreditNote {
+  id             String    @id @default(cuid())
+  companyId      String
+  company        Company   @relation("CompanyCreditNotes", fields: [companyId], references: [id])
+  customerId     String?
+  customer       Customer? @relation("CustomerCreditNotes", fields: [customerId], references: [id])
+  saleId         String?   // Venta original que se está anulando/corrigiendo
+  sale           Sale?     @relation("SaleCreditNotes", fields: [saleId], references: [id])
+  amount         Float
+  reason         String
+  documentNumber String    // Número correlativo (ej: "NC-000001")
+  documentType   String    @default("CREDIT_NOTE")
+  status         String    @default("active") // active | canceled
+  deletedAt      DateTime?
+  deletedBy      String?
+  createdAt      DateTime  @default(now())
+  
+  @@index([companyId, documentNumber])
+  @@index([saleId])
+}
+
+model DebitNote {
+  id             String    @id @default(cuid())
+  companyId      String
+  company        Company   @relation("CompanyDebitNotes", fields: [companyId], references: [id])
+  customerId     String?
+  customer       Customer? @relation("CustomerDebitNotes", fields: [customerId], references: [id])
+  saleId         String?   // Venta original que se está ajustando
+  sale           Sale?     @relation("SaleDebitNotes", fields: [saleId], references: [id])
+  amount         Float
+  reason         String
+  documentNumber String    // Número correlativo (ej: "ND-000001")
+  documentType   String    @default("DEBIT_NOTE")
+  status         String    @default("active") // active | canceled
+  deletedAt      DateTime?
+  deletedBy      String?
+  createdAt      DateTime  @default(now())
+  
+  @@index([companyId, documentNumber])
+  @@index([saleId])
+}
+
+model Quote {
+  id             String    @id @default(cuid())
+  companyId      String
+  company        Company   @relation("CompanyQuotes", fields: [companyId], references: [id])
+  customerId     String?
+  customer       Customer? @relation("CustomerQuotes", fields: [customerId], references: [id])
+  total          Float
+  status         String    @default("pending") // pending | accepted | rejected | converted
+  documentNumber String    // Número correlativo (ej: "PRE-000001")
+  documentType   String    @default("QUOTE")
+  validUntil     DateTime?
+  notes          String?
+  deletedAt      DateTime?
+  deletedBy      String?
+  createdAt      DateTime  @default(now())
+  
+  items          QuoteItem[]
+  sales          Sale[]     @relation("QuoteSales")
+  
+  @@index([companyId, documentNumber])
+}
+
+model QuoteItem {
+  id          String  @id @default(cuid())
+  quoteId     String
+  quote       Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String?
+  quantity    Int
+  price       Float
+}
+
+model DeliveryNote {
+  id             String    @id @default(cuid())
+  companyId      String
+  company        Company   @relation("CompanyDeliveryNotes", fields: [companyId], references: [id])
+  customerId     String?
+  customer       Customer? @relation("CustomerDeliveryNotes", fields: [customerId], references: [id])
+  total          Float
+  status         String    @default("pending") // pending | delivered | invoiced
+  documentNumber String    // Número correlativo (ej: "REM-000001")
+  documentType   String    @default("DELIVERY_NOTE")
+  deliveredAt    DateTime?
+  notes          String?
+  deletedAt      DateTime?
+  deletedBy      String?
+  createdAt      DateTime  @default(now())
+  
+  items          DeliveryNoteItem[]
+  sales          Sale[]     @relation("DeliveryNoteSales")
+  
+  @@index([companyId, documentNumber])
+}
+
+model DeliveryNoteItem {
+  id          String  @id @default(cuid())
+  deliveryNoteId String
+  deliveryNote   DeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String?
+  quantity    Int
+  price       Float
 }

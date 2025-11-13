@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
+import { getNextDocumentNumber } from "@/lib/document-sequence"
 
 // GET /api/cash - List all cash movements for the company
 export async function GET(request: NextRequest) {
@@ -13,19 +14,19 @@ export async function GET(request: NextRequest) {
     const movements = await db.cashMovement.findMany({
       where: {
         companyId,
+        deletedAt: null,
         ...(type && { type }),
       },
       orderBy: { createdAt: "desc" },
     })
 
-    // Calculate balance
     const balance = movements.reduce((acc, movement) => {
       return movement.type === "in" ? acc + movement.amount : acc - movement.amount
     }, 0)
 
     return NextResponse.json({ movements, balance })
   } catch (error) {
-    console.error("[v0] Error in GET /api/cash:", error)
+    console.error("Error in GET /api/cash:", error)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 }
@@ -46,18 +47,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Type must be 'in' or 'out'" }, { status: 400 })
     }
 
+    const docType = type === "in" ? "CASH_IN" : "CASH_OUT"
+    const documentNumber = await getNextDocumentNumber(companyId, docType)
+
     const movement = await db.cashMovement.create({
       data: {
         companyId,
         type,
         amount: Number.parseFloat(amount),
         note,
+        documentNumber,
       },
     })
 
     return NextResponse.json(movement, { status: 201 })
   } catch (error) {
-    console.error("[v0] Error creating cash movement:", error)
+    console.error("Error creating cash movement:", error)
     return NextResponse.json({ error: "Failed to create cash movement" }, { status: 500 })
   }
 }

@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
+import { getNextDocumentNumber } from "@/lib/document-sequence"
+import { createAuditLog, getSafeUserId } from "@/lib/audit-log"
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,6 +14,7 @@ export async function GET(request: NextRequest) {
     const sales = await db.sale.findMany({
       where: {
         companyId,
+        deletedAt: null,
         ...(status && { status }),
       },
       include: {
@@ -27,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(sales)
   } catch (error) {
-    console.error("[v0] Error in GET /api/sales:", error)
+    console.error("Error in GET /api/sales:", error)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 }
@@ -77,14 +80,15 @@ export async function POST(request: NextRequest) {
       total += item.price * item.quantity
     }
 
-    // Generar número interno
     const lastSale = await db.sale.findFirst({
       where: { companyId },
       orderBy: { internalNumber: "desc" },
     })
     const internalNumber = (lastSale?.internalNumber || 0) + 1
 
-    console.log("[v0] Creating sale with internal number:", internalNumber)
+    const documentNumber = await getNextDocumentNumber(companyId, "SALE")
+
+    console.log("[v0] Creating sale with numbers:", { internalNumber, documentNumber })
 
     // Preparar items con nombres de productos
     const itemsWithNames = await Promise.all(
@@ -114,7 +118,6 @@ export async function POST(request: NextRequest) {
       }),
     )
 
-    // Crear la venta con todos los items
     const sale = await db.sale.create({
       data: {
         companyId,
@@ -122,6 +125,7 @@ export async function POST(request: NextRequest) {
         total,
         status,
         internalNumber,
+        documentNumber,
         items: {
           create: itemsWithNames,
         },
@@ -153,6 +157,18 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("[v0] Stock updated successfully")
+
+    const userId = await getSafeUserId()
+    createAuditLog({
+      companyId,
+      userId,
+      action: "CREATE_SALE",
+      entityType: "SALE",
+      entityId: sale.id,
+      entityName: `Venta ${sale.documentNumber}`,
+      newValues: { total: sale.total, items: items.length, documentNumber: sale.documentNumber },
+      request,
+    })
 
     return NextResponse.json(sale, { status: 201 })
   } catch (error) {

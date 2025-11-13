@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
 import { getCompanyId } from "@/lib/session"
+import { getNextDocumentNumber } from "@/lib/document-sequence"
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -44,7 +45,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       WHERE id = ${id}
     `
 
-    // Registrar el movimiento de caja como ingreso
+    const documentNumber = await getNextDocumentNumber(companyId, "PAYMENT")
+
     await sql`
       INSERT INTO "CashMovement" (
         id,
@@ -52,13 +54,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         type,
         amount,
         note,
+        "documentNumber",
         "createdAt"
       ) VALUES (
         gen_random_uuid()::text,
         ${companyId},
-        'ingreso',
+        'in',
         ${amount},
         ${note || `Pago de cuenta corriente - ${customer[0].name}`},
+        ${documentNumber},
         NOW()
       )
     `
@@ -69,6 +73,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       payment: {
         amount,
         note,
+        documentNumber,
         customerName: customer[0].name,
         date: new Date().toISOString(),
       },

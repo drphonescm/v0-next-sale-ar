@@ -12,13 +12,16 @@ export async function GET() {
     }
 
     const customers = await db.customer.findMany({
-      where: { companyId },
+      where: {
+        companyId,
+        deletedAt: null,
+      },
       orderBy: { createdAt: "desc" },
     })
 
     return NextResponse.json(customers)
   } catch (error) {
-    console.error("[v0] Error in GET /api/customers:", error)
+    console.error("Error in GET /api/customers:", error)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 }
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(customer, { status: 201 })
   } catch (error) {
-    console.error("[v0] Error creating customer:", error)
+    console.error("Error creating customer:", error)
     return NextResponse.json({ error: "Failed to create customer" }, { status: 500 })
   }
 }

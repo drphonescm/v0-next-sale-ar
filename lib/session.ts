@@ -20,6 +20,15 @@ export async function requireAuth() {
   return user
 }
 
+export async function getCurrentUserId(): Promise<string | null> {
+  try {
+    const user = await getCurrentUser()
+    return user ? (user as any).id : null
+  } catch (error) {
+    return null
+  }
+}
+
 export async function getCompanyId(): Promise<string> {
   try {
     const user = await getCurrentUser()

@@ -2,16 +2,16 @@ import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 
-// GET /api/sales/[id] - Get a single sale
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
 
     const sale = await db.sale.findFirst({
       where: {
         id,
         companyId,
+        deletedAt: null,
       },
       include: {
         customer: true,
@@ -34,7 +34,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-// PUT /api/sales/[id] - Update a sale status
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
@@ -47,6 +46,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       where: {
         id,
         companyId,
+        deletedAt: null,
       },
       data: {
         ...(status !== undefined && { status }),
@@ -76,7 +76,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// DELETE /api/sales/[id] - Delete a sale
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const companyId = await getCompanyId()
@@ -86,6 +85,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       where: {
         id,
         companyId,
+        deletedAt: null,
       },
       include: {
         items: true,
@@ -113,12 +113,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       }
     }
 
-    await db.saleItem.deleteMany({
-      where: { saleId: id },
-    })
-
-    await db.sale.delete({
+    await db.sale.update({
       where: { id },
+      data: {
+        deletedAt: new Date(),
+        deletedBy: companyId, // Idealmente sería el userId
+        status: "canceled",
+      },
     })
 
     return NextResponse.json({ success: true })
