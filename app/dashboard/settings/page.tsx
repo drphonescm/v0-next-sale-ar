@@ -34,6 +34,8 @@ export default function SettingsPage() {
   const [companyCuit, setCompanyCuit] = useState("")
   const [logoUrl, setLogoUrl] = useState("")
   const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [isEditingCompany, setIsEditingCompany] = useState(false)
+  const [isEditingLogo, setIsEditingLogo] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [categoryName, setCategoryName] = useState("")
   const [categoryDescription, setCategoryDescription] = useState("")
@@ -112,6 +114,8 @@ export default function SettingsPage() {
       if (!response.ok) throw new Error("Error al guardar información de empresa")
 
       toast.success("Información de empresa actualizada correctamente")
+      setIsEditingCompany(false)
+      fetchSettings()
     } catch (error) {
       console.error("Error saving company info:", error)
       toast.error("Error al guardar la información de la empresa")
@@ -140,7 +144,6 @@ export default function SettingsPage() {
 
       const { url } = await response.json()
 
-      // Save logo URL to company settings
       const settingsResponse = await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -150,7 +153,9 @@ export default function SettingsPage() {
       if (!settingsResponse.ok) throw new Error("Failed to save logo")
 
       setLogoUrl(url)
+      setLogoFile(null)
       toast.success("Logo actualizado correctamente")
+      setIsEditingLogo(false)
     } catch (error) {
       console.error("Error uploading logo:", error)
       toast.error("Error al subir el logo")
@@ -304,63 +309,126 @@ export default function SettingsPage() {
         <TabsContent value="empresa" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Información de la Empresa</CardTitle>
-              <CardDescription>Configura los datos de tu empresa</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Información de la Empresa</CardTitle>
+                  <CardDescription>Configura los datos de tu empresa</CardDescription>
+                </div>
+                {!isEditingCompany && (
+                  <Button variant="outline" onClick={() => setIsEditingCompany(true)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Editar
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="companyName">Nombre de la Empresa *</Label>
-                <Input
-                  id="companyName"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Ingresa el nombre de tu empresa"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="companyCuit">CUIT (Opcional)</Label>
-                <Input
-                  id="companyCuit"
-                  value={companyCuit}
-                  onChange={(e) => setCompanyCuit(e.target.value)}
-                  placeholder="XX-XXXXXXXX-X"
-                />
-              </div>
+              {!isEditingCompany ? (
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-muted-foreground">Nombre de la Empresa</Label>
+                    <p className="text-lg font-medium">{companyName || "No configurado"}</p>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-muted-foreground">CUIT</Label>
+                    <p className="text-lg font-medium">{companyCuit || "No configurado"}</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName">Nombre de la Empresa *</Label>
+                    <Input
+                      id="companyName"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="Ingresa el nombre de tu empresa"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="companyCuit">CUIT (Opcional)</Label>
+                    <Input
+                      id="companyCuit"
+                      value={companyCuit}
+                      onChange={(e) => setCompanyCuit(e.target.value)}
+                      placeholder="XX-XXXXXXXX-X"
+                    />
+                  </div>
 
-              <Button onClick={handleSaveCompanyInfo} disabled={loading}>
-                {loading ? "Guardando..." : "Guardar Información"}
-              </Button>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSaveCompanyInfo} disabled={loading}>
+                      {loading ? "Guardando..." : "Guardar Cambios"}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsEditingCompany(false)
+                        fetchSettings()
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Logo de la Empresa</CardTitle>
-              <CardDescription>Sube el logo que aparecerá en facturas y documentos</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Logo de la Empresa</CardTitle>
+                  <CardDescription>Sube el logo que aparecerá en facturas y documentos</CardDescription>
+                </div>
+                {!isEditingLogo && (
+                  <Button variant="outline" onClick={() => setIsEditingLogo(true)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Cambiar Logo
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {logoUrl && (
-                <div className="flex justify-center p-4 border rounded-lg bg-muted">
+              <div className="flex justify-center p-4 border rounded-lg bg-muted">
+                {logoUrl ? (
                   <img src={logoUrl || "/placeholder.svg"} alt="Logo de la Empresa" className="max-h-32 object-contain" />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="logo">Seleccionar Logo</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="logo"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
-                  />
-                  <Button onClick={handleLogoUpload} disabled={loading || !logoFile}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    {t("upload")}
-                  </Button>
-                </div>
+                ) : (
+                  <p className="text-muted-foreground">No hay logo configurado</p>
+                )}
               </div>
+
+              {isEditingLogo && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="logo">Seleccionar Nuevo Logo</Label>
+                    <Input
+                      id="logo"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button onClick={handleLogoUpload} disabled={loading || !logoFile}>
+                      <Upload className="mr-2 h-4 w-4" />
+                      {loading ? "Subiendo..." : "Guardar Logo"}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsEditingLogo(false)
+                        setLogoFile(null)
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
