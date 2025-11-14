@@ -14,7 +14,7 @@ export async function GET() {
     return NextResponse.json(company)
   } catch (error) {
     console.error("[v0] Error fetching settings:", error)
-    return NextResponse.json({ error: "Failed to fetch settings" }, { status: 500 })
+    return NextResponse.json({ error: "Error al obtener configuración" }, { status: 500 })
   }
 }
 
@@ -23,16 +23,28 @@ export async function PUT(request: Request) {
     const companyId = await getCompanyId()
     const body = await request.json()
 
+    const updateData: any = {}
+    
+    if (body.logoUrl !== undefined) {
+      updateData.logoUrl = body.logoUrl
+    }
+    
+    if (body.name !== undefined) {
+      updateData.name = body.name
+    }
+    
+    if (body.cuit !== undefined) {
+      updateData.cuit = body.cuit
+    }
+
     const company = await db.company.update({
       where: { id: companyId },
-      data: {
-        logoUrl: body.logoUrl,
-      },
+      data: updateData,
     })
 
     return NextResponse.json(company)
   } catch (error) {
     console.error("[v0] Error updating settings:", error)
-    return NextResponse.json({ error: "Failed to update settings" }, { status: 500 })
+    return NextResponse.json({ error: "Error al actualizar configuración" }, { status: 500 })
   }
 }

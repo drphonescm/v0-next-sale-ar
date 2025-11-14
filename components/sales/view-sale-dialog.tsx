@@ -33,7 +33,7 @@ export function ViewSaleDialog({ open, onOpenChange, sale }: ViewSaleDialogProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Sale Details - Order #{sale.internalNumber}</DialogTitle>
+          <DialogTitle>Detalles de Venta - Orden #{sale.internalNumber}</DialogTitle>
           <DialogDescription>{formatDate(sale.createdAt)}</DialogDescription>
         </DialogHeader>
 
@@ -43,8 +43,8 @@ export function ViewSaleDialog({ open, onOpenChange, sale }: ViewSaleDialogProps
             <CardContent className="pt-6">
               <div className="grid gap-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Customer</span>
-                  <span className="font-medium">{sale.customer?.name || "Walk-in Customer"}</span>
+                  <span className="text-sm text-muted-foreground">Cliente</span>
+                  <span className="font-medium">{sale.customer?.name || "Consumidor Final"}</span>
                 </div>
                 {sale.customer?.email && (
                   <div className="flex justify-between">
@@ -54,13 +54,15 @@ export function ViewSaleDialog({ open, onOpenChange, sale }: ViewSaleDialogProps
                 )}
                 {sale.customer?.phone && (
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Phone</span>
+                    <span className="text-sm text-muted-foreground">Teléfono</span>
                     <span className="text-sm">{sale.customer.phone}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <Badge variant={sale.status === "completed" ? "default" : "secondary"}>{sale.status}</Badge>
+                  <span className="text-sm text-muted-foreground">Estado</span>
+                  <Badge variant={sale.status === "completed" ? "default" : "secondary"}>
+                    {sale.status === "completed" ? "Completada" : "Pendiente"}
+                  </Badge>
                 </div>
               </div>
             </CardContent>
@@ -70,13 +72,13 @@ export function ViewSaleDialog({ open, onOpenChange, sale }: ViewSaleDialogProps
 
           {/* Items */}
           <div className="grid gap-4">
-            <h3 className="font-semibold">Items</h3>
+            <h3 className="font-semibold">Productos</h3>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Price</TableHead>
+                  <TableHead>Producto</TableHead>
+                  <TableHead>Cantidad</TableHead>
+                  <TableHead>Precio</TableHead>
                   <TableHead className="text-right">Subtotal</TableHead>
                 </TableRow>
               </TableHeader>

@@ -10,7 +10,7 @@ import { useTranslation } from "@/hooks/use-translation"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusIcon, Pencil, Trash2, Upload } from "lucide-react"
+import { PlusIcon, Pencil, Trash2, Upload } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 interface Category {
@@ -30,6 +30,8 @@ interface Supplier {
 export default function SettingsPage() {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
+  const [companyName, setCompanyName] = useState("")
+  const [companyCuit, setCompanyCuit] = useState("")
   const [logoUrl, setLogoUrl] = useState("")
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
@@ -57,6 +59,8 @@ export default function SettingsPage() {
       const response = await fetch("/api/settings")
       if (response.ok) {
         const data = await response.json()
+        setCompanyName(data.name || "")
+        setCompanyCuit(data.cuit || "")
         setLogoUrl(data.logoUrl || "")
       }
     } catch (error) {
@@ -85,6 +89,34 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error("Error fetching suppliers:", error)
+    }
+  }
+
+  const handleSaveCompanyInfo = async () => {
+    if (!companyName.trim()) {
+      toast.error("El nombre de la empresa es requerido")
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          name: companyName,
+          cuit: companyCuit 
+        }),
+      })
+
+      if (!response.ok) throw new Error("Error al guardar información de empresa")
+
+      toast.success("Información de empresa actualizada correctamente")
+    } catch (error) {
+      console.error("Error saving company info:", error)
+      toast.error("Error al guardar la información de la empresa")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -262,28 +294,60 @@ export default function SettingsPage() {
         <p className="text-muted-foreground">{t("manageSystemSettings")}</p>
       </div>
 
-      <Tabs defaultValue="company" className="space-y-4">
+      <Tabs defaultValue="empresa" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="company">{t("company")}</TabsTrigger>
+          <TabsTrigger value="empresa">Empresa</TabsTrigger>
           <TabsTrigger value="categories">{t("categories")}</TabsTrigger>
           <TabsTrigger value="suppliers">{t("suppliers")}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="company" className="space-y-4">
+        <TabsContent value="empresa" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t("companyLogoTitle")}</CardTitle>
-              <CardDescription>{t("uploadCompanyLogo")}</CardDescription>
+              <CardTitle>Información de la Empresa</CardTitle>
+              <CardDescription>Configura los datos de tu empresa</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="companyName">Nombre de la Empresa *</Label>
+                <Input
+                  id="companyName"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Ingresa el nombre de tu empresa"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="companyCuit">CUIT (Opcional)</Label>
+                <Input
+                  id="companyCuit"
+                  value={companyCuit}
+                  onChange={(e) => setCompanyCuit(e.target.value)}
+                  placeholder="XX-XXXXXXXX-X"
+                />
+              </div>
+
+              <Button onClick={handleSaveCompanyInfo} disabled={loading}>
+                {loading ? "Guardando..." : "Guardar Información"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Logo de la Empresa</CardTitle>
+              <CardDescription>Sube el logo que aparecerá en facturas y documentos</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {logoUrl && (
                 <div className="flex justify-center p-4 border rounded-lg bg-muted">
-                  <img src={logoUrl || "/placeholder.svg"} alt="Company Logo" className="max-h-32 object-contain" />
+                  <img src={logoUrl || "/placeholder.svg"} alt="Logo de la Empresa" className="max-h-32 object-contain" />
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="logo">{t("selectLogo")}</Label>
+                <Label htmlFor="logo">Seleccionar Logo</Label>
                 <div className="flex gap-2">
                   <Input
                     id="logo"
