@@ -50,7 +50,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     await db.sale.update({
       where: { id },
       data: {
-        status: "canceled",
+        status: "cancelado",
         canceledAt: new Date(),
         cancelReason: reason,
         cancelDocId: creditNote.id,
@@ -84,16 +84,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     return NextResponse.json({
-      success: true,
+      exitoso: true,
       creditNote,
       sale: {
         ...sale,
-        status: "canceled",
+        status: "cancelado",
         canceledAt: new Date(),
       },
     })
   } catch (error) {
-    console.error("Error canceling sale:", error)
+    console.error("Error al anular venta:", error)
     return NextResponse.json({ error: "Error al anular la venta" }, { status: 500 })
   }
 }
