@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
+import { logChange } from "@/lib/change-log"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -47,6 +48,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
 
+    const before = { ...product }
+
     const updatedProduct = await db.product.update({
       where: { id },
       data: {
@@ -66,6 +69,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         category: true,
         supplier: true,
       },
+    })
+
+    await logChange({
+      module: "productos",
+      tableName: "product",
+      recordId: id,
+      action: "update",
+      description: `Producto actualizado: ${updatedProduct.name}`,
+      before,
+      after: updatedProduct,
     })
 
     return NextResponse.json(updatedProduct)
@@ -88,6 +101,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
     }
 
+    const before = { ...product }
+
     await db.product.update({
       where: { id },
       data: {
@@ -95,6 +110,16 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         deletedBy: companyId,
         status: "discontinued",
       },
+    })
+
+    await logChange({
+      module: "productos",
+      tableName: "product",
+      recordId: id,
+      action: "delete",
+      description: `Producto eliminado: ${product.name}`,
+      before,
+      after: null,
     })
 
     return NextResponse.json({ success: true, message: "Producto eliminado correctamente" })
