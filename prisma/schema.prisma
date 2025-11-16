@@ -340,21 +340,3 @@ model DeliveryNoteItem {
   quantity    Int
   price       Float
 }
-
-// --- Historial de cambios ---
-model ChangeLog {
-  id          String   @id @default(cuid())
-  module      String   // productos | clientes | ventas | caja
-  tableName   String   // product | customer | sale | cash_movement
-  recordId    String   // ID del registro modificado
-  userId      String?  // ID del usuario que hizo el cambio
-  action      String   // create | update | delete
-  description String   // Descripción corta del cambio
-  before      String?  @db.Text // JSON con datos anteriores
-  after       String?  @db.Text // JSON con datos nuevos
-  createdAt   DateTime @default(now())
-  
-  @@index([module])
-  @@index([recordId])
-  @@index([createdAt])
-}
