@@ -43,7 +43,6 @@ model Company {
   customers   Customer[]     @relation("CompanyCustomers")
   sales       Sale[]         @relation("CompanySales")
   cash        CashMovement[] @relation("CompanyCashMovements")
-  auditLogs   AuditLog[]     @relation("CompanyAuditLogs")
   suppliers   Supplier[]
   documentSequences DocumentSequence[] @relation("CompanyDocumentSequences")
   payments    Payment[]      @relation("CompanyPayments")
@@ -166,29 +165,6 @@ model CashMovement {
   createdAt      DateTime @default(now())
   
   @@index([companyId, documentNumber])
-}
-
-// --- Auditoría general ---
-model AuditLog {
-  id          String   @id @default(cuid())
-  companyId   String
-  company     Company  @relation("CompanyAuditLogs", fields: [companyId], references: [id])
-  userId      String?  // Ahora puede ser null si no hay sesión activa
-  action      String   // CREATE_PRODUCT | UPDATE_PRODUCT_PRICE | DELETE_SALE | etc.
-  entityType  String   // Product | Sale | Customer | CashMovement | etc.
-  entityId    String
-  entityName  String?  // Nombre de la entidad afectada
-  oldValues   String?  // Valores anteriores en JSON
-  newValues   String?  // Valores nuevos en JSON
-  ipAddress   String?  // IP del usuario
-  userAgent   String?  // User agent del navegador
-  createdAt   DateTime @default(now())
-
-  @@index([companyId])
-  @@index([userId])
-  @@index([action])
-  @@index([entityType])
-  @@index([createdAt])
 }
 
 model Supplier {

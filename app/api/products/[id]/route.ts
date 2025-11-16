@@ -1,12 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
-import { createAuditLog, getSafeUserId } from "@/lib/audit-log"
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = await params
+    const { id } = params
 
     const product = await db.product.findFirst({
       where: {
@@ -31,10 +30,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = await params
+    const { id } = params
     const body = await request.json()
 
     const { sku, name, categoryId, supplierId, costPrice, price, stock, stockIdeal, stockMinimo, imageUrl, status } =
@@ -69,19 +68,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
     })
 
-    const userId = await getSafeUserId()
-    createAuditLog({
-      companyId,
-      userId,
-      action: "UPDATE_PRODUCT",
-      entityType: "PRODUCT",
-      entityId: id,
-      entityName: product.name,
-      oldValues: product,
-      newValues: updatedProduct,
-      request,
-    })
-
     return NextResponse.json(updatedProduct)
   } catch (error) {
     console.error("Error updating product:", error)
@@ -89,9 +75,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { id } = await params
+    const { id } = params
     const companyId = await getCompanyId()
 
     const product = await db.product.findFirst({
@@ -109,18 +95,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         deletedBy: companyId,
         status: "discontinued",
       },
-    })
-
-    const userId = await getSafeUserId()
-    createAuditLog({
-      companyId,
-      userId,
-      action: "DELETE_PRODUCT",
-      entityType: "PRODUCT",
-      entityId: id,
-      entityName: product.name,
-      oldValues: product,
-      request,
     })
 
     return NextResponse.json({ success: true, message: "Producto eliminado correctamente" })

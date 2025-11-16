@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DownloadIcon, FileTextIcon, PrinterIcon, ShieldCheckIcon } from "lucide-react"
+import { DownloadIcon, FileTextIcon, PrinterIcon } from 'lucide-react'
 import { useTranslation } from "@/hooks/use-translation"
 import { toast } from "sonner"
 import useSWR from "swr"
@@ -26,8 +26,6 @@ export default function ReportsPage() {
   const [showReport, setShowReport] = useState(false)
   const [customerSort, setCustomerSort] = useState("highest")
   const [selectedCategory, setSelectedCategory] = useState("all")
-  const [auditAction, setAuditAction] = useState("all")
-  const [auditEntityType, setAuditEntityType] = useState("all")
 
   const { data: categories } = useSWR("/api/categories", fetcher)
 
@@ -37,32 +35,6 @@ export default function ReportsPage() {
       const params = new URLSearchParams({
         type: reportType,
       })
-
-      if (reportType === "audit") {
-        if (startDate && endDate) {
-          const startDateTime = `${startDate}T${startTime}`
-          const endDateTime = `${endDate}T${endTime}`
-          params.append("startDate", startDateTime)
-          params.append("endDate", endDateTime)
-        }
-        if (auditAction !== "all") {
-          params.append("action", auditAction)
-        }
-        if (auditEntityType !== "all") {
-          params.append("entityType", auditEntityType)
-        }
-
-        const response = await fetch(`/api/audit?${params}`)
-        if (!response.ok) {
-          throw new Error("Failed to generate audit report")
-        }
-        const data = await response.json()
-        setReportData(data)
-        setShowReport(true)
-        toast.success(t("reportGeneratedSuccessfully"))
-        setLoading(false)
-        return
-      }
 
       if (reportType === "sales" || reportType === "cash") {
         if (startDate && endDate) {
@@ -154,35 +126,6 @@ export default function ReportsPage() {
   const renderReportTable = () => {
     if (!showReport || reportData.length === 0) {
       return null
-    }
-
-    if (reportType === "audit") {
-      return (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("date")}</TableHead>
-              <TableHead>{t("action")}</TableHead>
-              <TableHead>{t("entityType")}</TableHead>
-              <TableHead>{t("description")}</TableHead>
-              <TableHead>{t("user")}</TableHead>
-              <TableHead>{t("ipAddress")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {reportData.map((log: any, index: number) => (
-              <TableRow key={index}>
-                <TableCell className="text-xs">{log.date}</TableCell>
-                <TableCell className="text-xs font-medium">{log.action}</TableCell>
-                <TableCell className="text-xs">{log.entityType}</TableCell>
-                <TableCell className="text-xs">{log.description}</TableCell>
-                <TableCell className="text-xs">{log.userId}</TableCell>
-                <TableCell className="text-xs">{log.ipAddress}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )
     }
 
     switch (reportType) {
@@ -514,17 +457,11 @@ export default function ReportsPage() {
                   <SelectItem value="customers">{t("customers")}</SelectItem>
                   <SelectItem value="products">{t("products")}</SelectItem>
                   <SelectItem value="cash">{t("cashFlow")}</SelectItem>
-                  <SelectItem value="audit">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheckIcon className="size-3" />
-                      {t("audit")}
-                    </div>
-                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {(reportType === "sales" || reportType === "cash" || reportType === "audit") && (
+            {(reportType === "sales" || reportType === "cash") && (
               <>
                 <div className="space-y-1.5">
                   <Label htmlFor="startDate" className="text-xs">
@@ -550,51 +487,6 @@ export default function ReportsPage() {
                     onChange={(e) => setEndDate(e.target.value)}
                     className="h-9 text-sm"
                   />
-                </div>
-              </>
-            )}
-
-            {reportType === "audit" && (
-              <>
-                <div className="space-y-1.5">
-                  <Label htmlFor="auditAction" className="text-xs">
-                    {t("action")}
-                  </Label>
-                  <Select value={auditAction} onValueChange={setAuditAction}>
-                    <SelectTrigger id="auditAction" className="h-9 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t("allActions")}</SelectItem>
-                      <SelectItem value="DELETE_PRODUCT">{t("deleteProduct")}</SelectItem>
-                      <SelectItem value="UPDATE_PRODUCT_PRICE">{t("updateProductPrice")}</SelectItem>
-                      <SelectItem value="UPDATE_PRODUCT_STOCK">{t("updateProductStock")}</SelectItem>
-                      <SelectItem value="CREATE_SALE">{t("createSale")}</SelectItem>
-                      <SelectItem value="DELETE_SALE">{t("deleteSale")}</SelectItem>
-                      <SelectItem value="DELETE_CUSTOMER">{t("deleteCustomer")}</SelectItem>
-                      <SelectItem value="UPDATE_CUSTOMER_CREDIT">{t("updateCustomerCredit")}</SelectItem>
-                      <SelectItem value="CREATE_CASH_MOVEMENT">{t("createCashMovement")}</SelectItem>
-                      <SelectItem value="DELETE_CASH_MOVEMENT">{t("deleteCashMovement")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="auditEntityType" className="text-xs">
-                    {t("entityType")}
-                  </Label>
-                  <Select value={auditEntityType} onValueChange={setAuditEntityType}>
-                    <SelectTrigger id="auditEntityType" className="h-9 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t("allEntities")}</SelectItem>
-                      <SelectItem value="Product">{t("product")}</SelectItem>
-                      <SelectItem value="Sale">{t("sale")}</SelectItem>
-                      <SelectItem value="Customer">{t("customer")}</SelectItem>
-                      <SelectItem value="CashMovement">{t("cashMovement")}</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </>
             )}
@@ -638,7 +530,7 @@ export default function ReportsPage() {
             )}
           </div>
 
-          {(reportType === "sales" || reportType === "cash" || reportType === "audit") && startDate && endDate && (
+          {(reportType === "sales" || reportType === "cash") && startDate && endDate && (
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="startTime" className="text-xs">
@@ -682,7 +574,7 @@ export default function ReportsPage() {
 
             <Button
               onClick={handleExportToExcel}
-              disabled={loading || !startDate || !endDate || reportType === "audit"}
+              disabled={loading || !startDate || !endDate}
               size="sm"
               variant="outline"
               className="h-9 text-sm bg-transparent"

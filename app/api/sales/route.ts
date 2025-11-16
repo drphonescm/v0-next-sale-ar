@@ -2,7 +2,6 @@ import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 import { getNextDocumentNumber } from "@/lib/document-sequence"
-import { createAuditLog, getSafeUserId } from "@/lib/audit-log"
 
 export async function GET(request: NextRequest) {
   try {
@@ -157,18 +156,6 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("[v0] Stock updated successfully")
-
-    const userId = await getSafeUserId()
-    createAuditLog({
-      companyId,
-      userId,
-      action: "CREATE_SALE",
-      entityType: "SALE",
-      entityId: sale.id,
-      entityName: `Venta ${sale.documentNumber}`,
-      newValues: { total: sale.total, items: items.length, documentNumber: sale.documentNumber },
-      request,
-    })
 
     return NextResponse.json(sale, { status: 201 })
   } catch (error) {
