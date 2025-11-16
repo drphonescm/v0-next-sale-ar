@@ -3,7 +3,7 @@
 import type React from "react"
 import { useEffect } from "react"
 import { SessionProvider, useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import {
   SidebarProvider,
   Sidebar,
@@ -16,16 +16,7 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import {
-  LayoutDashboardIcon,
-  PackageIcon,
-  UsersIcon,
-  ShoppingCartIcon,
-  WalletIcon,
-  LogOutIcon,
-  BarChart3Icon,
-  SettingsIcon,
-} from "lucide-react"
+import { LayoutDashboardIcon, PackageIcon, UsersIcon, ShoppingCartIcon, WalletIcon, LogOutIcon, BarChart3Icon, SettingsIcon, HistoryIcon } from 'lucide-react'
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -118,6 +109,15 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 <Link href="/dashboard/cash">
                   <WalletIcon />
                   <span>{t("cashFlow")}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Historial">
+                <Link href="/dashboard/historial">
+                  <HistoryIcon />
+                  <span>Historial</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
