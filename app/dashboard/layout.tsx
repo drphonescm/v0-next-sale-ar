@@ -3,7 +3,7 @@
 import type React from "react"
 import { useEffect } from "react"
 import { SessionProvider, useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import {
   SidebarProvider,
   Sidebar,
@@ -16,16 +16,7 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import {
-  LayoutDashboardIcon,
-  PackageIcon,
-  UsersIcon,
-  ShoppingCartIcon,
-  WalletIcon,
-  LogOutIcon,
-  BarChart3Icon,
-  SettingsIcon,
-} from "lucide-react"
+import { LayoutDashboardIcon, PackageIcon, UsersIcon, ShoppingCartIcon, WalletIcon, LogOutIcon, BarChart3Icon, SettingsIcon, TrashIcon } from 'lucide-react'
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -136,6 +127,15 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 <Link href="/dashboard/settings">
                   <SettingsIcon />
                   <span>{t("settings")}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Elementos Eliminados">
+                <Link href="/dashboard/eliminados">
+                  <TrashIcon />
+                  <span>Eliminados</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
