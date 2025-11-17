@@ -36,8 +36,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const { id } = params
     const body = await request.json()
 
-    const { sku, name, categoryId, supplierId, costPrice, price, stock, stockIdeal, stockMinimo, imageUrl, status } =
-      body
+    const { sku, name, categoryId, supplierId, costPrice, price, stock, stockIdeal, stockMinimo, imageUrl } = body
 
     const product = await db.product.findFirst({
       where: { id, companyId, deletedAt: null },
@@ -60,7 +59,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         ...(stockIdeal !== undefined && { stockIdeal: stockIdeal ? Number.parseInt(stockIdeal) : null }),
         ...(stockMinimo !== undefined && { stockMinimo: stockMinimo ? Number.parseInt(stockMinimo) : null }),
         ...(imageUrl !== undefined && { imageUrl }),
-        ...(status !== undefined && { status }),
       },
       include: {
         category: true,
@@ -92,8 +90,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       where: { id },
       data: {
         deletedAt: new Date(),
-        deletedBy: companyId,
-        status: "discontinued",
       },
     })
 

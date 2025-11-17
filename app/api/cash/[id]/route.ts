@@ -19,7 +19,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       where: { id },
       data: {
         deletedAt: new Date(),
-        deletedBy: companyId, // Idealmente sería el userId
       },
     })
 

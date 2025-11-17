@@ -41,7 +41,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const { id } = params
     const body = await request.json()
 
-    const { name, email, phone, creditLimit, status } = body
+    const { name, email, phone, creditLimit } = body
 
     const customer = await db.customer.findFirst({
       where: { id, companyId, deletedAt: null },
@@ -58,7 +58,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         ...(email !== undefined && { email }),
         ...(phone !== undefined && { phone }),
         ...(creditLimit !== undefined && { creditLimit: Number.parseFloat(creditLimit.toString()) || 0 }),
-        ...(status !== undefined && { status }),
       },
     })
 
@@ -86,8 +85,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       where: { id },
       data: {
         deletedAt: new Date(),
-        deletedBy: companyId, // Idealmente sería el userId
-        status: "inactive",
       },
     })
 

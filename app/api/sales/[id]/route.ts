@@ -2,10 +2,10 @@ import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = await params
+    const { id } = params
 
     const sale = await db.sale.findFirst({
       where: {
@@ -34,10 +34,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = await params
+    const { id } = params
     const body = await request.json()
 
     const { status } = body
@@ -76,10 +76,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const companyId = await getCompanyId()
-    const { id } = await params
+    const { id } = params
 
     const sale = await db.sale.findFirst({
       where: {
@@ -117,8 +117,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       where: { id },
       data: {
         deletedAt: new Date(),
-        deletedBy: companyId, // Idealmente sería el userId
-        status: "canceled",
       },
     })
 
