@@ -2,10 +2,15 @@ import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
+
+    console.log("[v0] GET Product - ID:", id, "CompanyID:", companyId)
 
     const product = await db.product.findFirst({
       where: {
@@ -20,21 +25,26 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     })
 
     if (!product) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 })
+      return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
     }
 
     return NextResponse.json(product)
   } catch (error) {
-    console.error("Error fetching product:", error)
-    return NextResponse.json({ error: "Failed to fetch product" }, { status: 500 })
+    console.error("[v0] Error fetching product:", error)
+    return NextResponse.json({ error: "Error al obtener producto" }, { status: 500 })
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const companyId = await getCompanyId()
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
+
+    console.log("[v0] PUT Product - ID:", id, "Body:", body)
 
     const { sku, name, categoryId, supplierId, costPrice, price, stock, stockIdeal, stockMinimo, imageUrl } = body
 
@@ -43,7 +53,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     })
 
     if (!product) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 })
+      return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
     }
 
     const updatedProduct = await db.product.update({
@@ -66,26 +76,34 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       },
     })
 
+    console.log("[v0] Product updated successfully:", updatedProduct.id)
     return NextResponse.json(updatedProduct)
   } catch (error) {
-    console.error("Error updating product:", error)
-    return NextResponse.json({ error: "Failed to update product" }, { status: 500 })
+    console.error("[v0] Error updating product:", error)
+    return NextResponse.json({ error: "Error al actualizar producto" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = params
+    const { id } = await params
     const companyId = await getCompanyId()
+
+    console.log("[v0] DELETE Product - ID:", id, "CompanyID:", companyId)
 
     const product = await db.product.findFirst({
       where: { id, companyId, deletedAt: null },
     })
 
     if (!product) {
+      console.log("[v0] Product not found for deletion")
       return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
     }
 
+    // Soft delete: solo marcamos deletedAt
     await db.product.update({
       where: { id },
       data: {
@@ -93,9 +111,10 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       },
     })
 
+    console.log("[v0] Product soft deleted successfully")
     return NextResponse.json({ success: true, message: "Producto eliminado correctamente" })
   } catch (error) {
-    console.error("Error deleting product:", error)
+    console.error("[v0] Error deleting product:", error)
     return NextResponse.json(
       {
         error: "Error al eliminar producto",
