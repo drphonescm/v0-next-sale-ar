@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
         const sales = await db.sale.findMany({
           where: {
             companyId,
+            deletedAt: null,
             ...dateFilter,
           },
           include: {
@@ -79,6 +80,7 @@ export async function GET(request: NextRequest) {
         const customers = await db.customer.findMany({
           where: {
             companyId,
+            deletedAt: null,
           },
           include: {
             sales: true,
@@ -111,6 +113,7 @@ export async function GET(request: NextRequest) {
       case "products":
         const productFilter: any = {
           companyId,
+          deletedAt: null,
         }
 
         if (categoryId && categoryId !== "all") {
@@ -142,6 +145,7 @@ export async function GET(request: NextRequest) {
         const movements = await db.cashMovement.findMany({
           where: {
             companyId,
+            deletedAt: null,
             ...dateFilter,
           },
           orderBy: {
