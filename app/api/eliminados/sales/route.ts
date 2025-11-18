@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { db } from "@/lib/db"
+import { getCompanyId } from "@/lib/session"
 
 export async function GET(request: NextRequest) {
   try {
-    const sales = await prisma.sale.findMany({
+    const companyId = await getCompanyId()
+    
+    const sales = await db.sale.findMany({
       where: {
+        companyId,
         deletedAt: {
           not: null,
         },
