@@ -94,7 +94,7 @@ export default function DeletedItemsPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-3xl font-bold">Elementos Eliminados</h1>
+        <h1 className="text-3xl font-bold">Historial</h1>
         <p className="text-muted-foreground">
           Visualiza y restaura elementos que han sido eliminados
         </p>
@@ -123,7 +123,7 @@ export default function DeletedItemsPage() {
         <TabsContent value="products">
           <Card>
             <CardHeader>
-              <CardTitle>Productos Eliminados</CardTitle>
+              <CardTitle>Productos en Historial</CardTitle>
               <CardDescription>
                 Productos que fueron eliminados del sistema
               </CardDescription>
@@ -177,7 +177,7 @@ export default function DeletedItemsPage() {
         <TabsContent value="customers">
           <Card>
             <CardHeader>
-              <CardTitle>Clientes Eliminados</CardTitle>
+              <CardTitle>Clientes en Historial</CardTitle>
               <CardDescription>
                 Clientes que fueron eliminados del sistema
               </CardDescription>
@@ -229,7 +229,7 @@ export default function DeletedItemsPage() {
         <TabsContent value="sales">
           <Card>
             <CardHeader>
-              <CardTitle>Ventas Eliminadas</CardTitle>
+              <CardTitle>Ventas en Historial</CardTitle>
               <CardDescription>
                 Ventas que fueron eliminadas del sistema
               </CardDescription>
@@ -285,7 +285,7 @@ export default function DeletedItemsPage() {
         <TabsContent value="cash">
           <Card>
             <CardHeader>
-              <CardTitle>Movimientos de Caja Eliminados</CardTitle>
+              <CardTitle>Movimientos de Caja en Historial</CardTitle>
               <CardDescription>
                 Movimientos de caja que fueron eliminados del sistema
               </CardDescription>

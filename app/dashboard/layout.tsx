@@ -132,10 +132,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             </SidebarMenuItem>
 
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Elementos Eliminados">
-                <Link href="/dashboard/eliminados">
+              <SidebarMenuButton asChild tooltip="Historial">
+                <Link href="/dashboard/historial">
                   <TrashIcon />
-                  <span>Eliminados</span>
+                  <span>Historial</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
