@@ -23,21 +23,30 @@ export async function GET() {
       return new NextResponse("User not found", { status: 404 })
     }
 
-    // Fetch payment history (AuditLogs related to SUBSCRIPTION_PAYMENT)
     const history = await db.auditLog.findMany({
       where: {
         userId: user.id,
-        action: "SUBSCRIPTION_PAYMENT",
+        action: { in: ["REDEEM_COUPON", "SUBSCRIPTION_PAYMENT"] },
+      },
+      orderBy: {
+        timestamp: "desc",
+      },
+      take: 20,
+    })
+
+    const usedCoupons = await db.coupon.findMany({
+      where: {
+        usedBy: user.id,
       },
       orderBy: {
         createdAt: "desc",
       },
-      take: 10,
     })
 
     return NextResponse.json({
       subscription: user.subscription,
       history,
+      usedCoupons,
     })
   } catch (error) {
     console.error("[SUBSCRIPTION_STATUS_GET]", error)

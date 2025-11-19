@@ -41,9 +41,9 @@ export async function POST(req: Request) {
     const startDate = new Date()
     const endDate = new Date()
     if (coupon.type === "MONTHLY") {
-      endDate.setMonth(endDate.getMonth() + 1)
+      endDate.setDate(endDate.getDate() + 30) // 30 días exactos
     } else if (coupon.type === "ANNUAL") {
-      endDate.setFullYear(endDate.getFullYear() + 1)
+      endDate.setDate(endDate.getDate() + 365) // 365 días exactos
     }
 
     await db.subscription.updateMany({
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
         data: {
           userId: user.id,
           action: "REDEEM_COUPON",
-          details: `Canjeó cupón ${code} para plan ${coupon.type} (vence ${endDate.toLocaleDateString()})`,
+          details: `Canjeó cupón ${code} (${coupon.type === "MONTHLY" ? "Mensual - 30 días" : "Anual - 365 días"}) - Vence: ${endDate.toLocaleDateString("es-AR")}`,
         },
       }),
     ])

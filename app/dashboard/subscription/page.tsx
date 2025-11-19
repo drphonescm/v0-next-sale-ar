@@ -82,6 +82,10 @@ export default function SubscriptionPage() {
   const sub = data?.subscription
   const isBlocked = sub?.status === "BLOCKED"
   const isGrace = sub?.status === "GRACE"
+  
+  const daysRemaining = sub?.endDate 
+    ? Math.ceil((new Date(sub.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    : 0
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 p-6">
@@ -112,7 +116,6 @@ export default function SubscriptionPage() {
         </Alert>
       )}
 
-      {/* Status Card */}
       <Card>
         <CardHeader>
           <CardTitle>Estado Actual</CardTitle>
@@ -129,8 +132,13 @@ export default function SubscriptionPage() {
             </Badge>
           </div>
           <div>
-            <div className="text-sm font-medium text-muted-foreground">Vencimiento</div>
-            <div className="text-lg">{sub?.endDate ? new Date(sub.endDate).toLocaleDateString() : "-"}</div>
+            <div className="text-sm font-medium text-muted-foreground">Vence el</div>
+            <div className="text-lg font-bold">{sub?.endDate ? new Date(sub.endDate).toLocaleDateString("es-AR") : "-"}</div>
+            {daysRemaining > 0 && sub?.status === "ACTIVE" && (
+              <div className="text-xs text-muted-foreground mt-1">
+                {daysRemaining} {daysRemaining === 1 ? "día restante" : "días restantes"}
+              </div>
+            )}
           </div>
           <div>
             <div className="text-sm font-medium text-muted-foreground">Deuda</div>
@@ -223,40 +231,81 @@ export default function SubscriptionPage() {
         </div>
       </div>
 
-      {/* History Section */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-bold flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Historial de Pagos
-        </h3>
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead>Monto</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data?.history?.length > 0 ? (
-                data.history.map((log: any) => (
-                  <TableRow key={log.id}>
-                    <TableCell>{new Date(log.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell>{log.details}</TableCell>
-                    <TableCell>$29.000</TableCell>
-                  </TableRow>
-                ))
-              ) : (
+      {/* Historial de Cupones Canjeados y Pagos */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Historial de Cupones Canjeados */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-bold flex items-center gap-2">
+            <Tag className="h-5 w-5" />
+            Cupones Canjeados
+          </h3>
+          <Card>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    No hay pagos registrados
-                  </TableCell>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Fecha</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </Card>
+              </TableHeader>
+              <TableBody>
+                {data?.usedCoupons?.length > 0 ? (
+                  data.usedCoupons.map((coupon: any) => (
+                    <TableRow key={coupon.id}>
+                      <TableCell className="font-mono font-bold">{coupon.code}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {coupon.type === "MONTHLY" ? "Mensual (30 días)" : "Anual (365 días)"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{new Date(coupon.createdAt).toLocaleDateString("es-AR")}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center text-muted-foreground">
+                      No has canjeado cupones aún
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </div>
+
+        {/* Historial de Pagos */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-bold flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Historial de Actividad
+          </h3>
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Descripción</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data?.history?.length > 0 ? (
+                  data.history.map((log: any) => (
+                    <TableRow key={log.id}>
+                      <TableCell className="text-sm">{new Date(log.timestamp).toLocaleDateString("es-AR")}</TableCell>
+                      <TableCell className="text-sm">{log.details}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center text-muted-foreground">
+                      No hay actividad registrada
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </div>
       </div>
     </div>
   )
