@@ -22,8 +22,7 @@ export function BlockedOverlayWrapper({
         </div>
         <h1 className="text-3xl font-bold text-red-600">Acceso Bloqueado</h1>
         <p className="text-xl text-muted-foreground max-w-md">
-          Tu suscripción ha expirado y el periodo de gracia ha terminado. 
-          Para continuar usando el sistema, por favor renueva tu suscripción.
+          No tienes una suscripción activa. Para acceder a los servicios del sistema, por favor realiza el pago de tu suscripción.
         </p>
         <Link 
           href="/dashboard/subscription" 

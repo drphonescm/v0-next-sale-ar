@@ -103,7 +103,7 @@ export default function SubscriptionPage() {
         {/* Annual Plan */}
         <div className="border rounded-xl p-6 space-y-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden border-primary/20 bg-primary/5">
           <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-bl-xl font-medium">
-            Ahorra $50
+            AHORRA 20%
           </div>
           <div className="space-y-2">
             <h3 className="text-xl font-semibold">Plan Anual</h3>
@@ -111,7 +111,9 @@ export default function SubscriptionPage() {
               <span className="text-4xl font-bold">$190</span>
               <span className="text-muted-foreground">/año</span>
             </div>
-            <p className="text-sm text-muted-foreground">La mejor opción para negocios</p>
+            <p className="text-sm text-muted-foreground">
+              Antes <span className="line-through">$240</span> al año
+            </p>
           </div>
           <ul className="space-y-2 text-sm">
             <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Todo lo del plan mensual</li>

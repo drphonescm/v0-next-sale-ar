@@ -6,7 +6,7 @@ export async function checkSubscriptionStatus(userId: string) {
     orderBy: { createdAt: "desc" },
   })
 
-  if (!subscription) return { status: "none", subscription: null }
+  if (!subscription) return { status: "blocked", subscription: null }
 
   const now = new Date()
   const endDate = subscription.endDate ? new Date(subscription.endDate) : null
