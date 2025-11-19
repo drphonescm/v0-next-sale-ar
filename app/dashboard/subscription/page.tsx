@@ -1,20 +1,32 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Check, CreditCard, Tag } from 'lucide-react'
+import { Check, CreditCard, Tag, AlertTriangle, Clock, FileText } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function SubscriptionPage() {
   const [loading, setLoading] = useState(false)
   const [couponCode, setCouponCode] = useState("")
-  const [subscription, setSubscription] = useState<any>(null)
+  const [data, setData] = useState<any>(null)
   const router = useRouter()
 
   useEffect(() => {
-    // Fetch current subscription
-    // For now we just simulate or fetch if endpoint exists
-    // I'll assume we might need an endpoint to get current sub, or pass it via server component
-    // For simplicity in this step, I'll just show the selection UI
+    fetch("/api/subscription/status")
+      .then((res) => res.json())
+      .then((data) => setData(data))
+      .catch((err) => console.error(err))
   }, [])
 
   const handleRedeemCoupon = async (e: React.FormEvent) => {
@@ -30,7 +42,7 @@ export default function SubscriptionPage() {
       if (res.ok) {
         alert("¡Cupón canjeado con éxito! Tu suscripción está activa.")
         router.refresh()
-        // Redirect or update state
+        window.location.reload()
       } else {
         const msg = await res.text()
         alert(`Error: ${msg}`)
@@ -67,12 +79,67 @@ export default function SubscriptionPage() {
     }
   }
 
+  const sub = data?.subscription
+  const isBlocked = sub?.status === "BLOCKED"
+  const isGrace = sub?.status === "GRACE"
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 p-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">Elige tu plan</h1>
-        <p className="text-muted-foreground">Desbloquea todo el potencial de Next Sale ARG</p>
+        <h1 className="text-3xl font-bold">Suscripción y Pagos</h1>
+        <p className="text-muted-foreground">Gestiona tu plan y revisa tu historial</p>
       </div>
+
+      {isBlocked && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Servicio Bloqueado</AlertTitle>
+          <AlertDescription>
+            Tu suscripción ha vencido y el periodo de gracia ha terminado. 
+            Por favor realiza el pago para reactivar el acceso al sistema.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isGrace && (
+        <Alert className="border-yellow-500 text-yellow-600 bg-yellow-50">
+          <Clock className="h-4 w-4" />
+          <AlertTitle>Periodo de Gracia</AlertTitle>
+          <AlertDescription>
+            Tu suscripción ha vencido. Tienes acceso limitado por unos días. 
+            Evita el bloqueo realizando el pago ahora.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Status Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Estado Actual</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-4">
+          <div>
+            <div className="text-sm font-medium text-muted-foreground">Plan</div>
+            <div className="text-lg font-bold">{sub?.plan === "ANNUAL" ? "Anual" : sub?.plan === "MONTHLY" ? "Mensual" : "Ninguno"}</div>
+          </div>
+          <div>
+            <div className="text-sm font-medium text-muted-foreground">Estado</div>
+            <Badge variant={sub?.status === "ACTIVE" ? "default" : "destructive"}>
+              {sub?.status || "Inactivo"}
+            </Badge>
+          </div>
+          <div>
+            <div className="text-sm font-medium text-muted-foreground">Vencimiento</div>
+            <div className="text-lg">{sub?.endDate ? new Date(sub.endDate).toLocaleDateString() : "-"}</div>
+          </div>
+          <div>
+            <div className="text-sm font-medium text-muted-foreground">Deuda</div>
+            <div className={`text-lg font-bold ${isBlocked || isGrace ? "text-red-500" : "text-green-500"}`}>
+              {isBlocked || isGrace ? "$20.00" : "$0.00"}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Monthly Plan */}
@@ -96,7 +163,7 @@ export default function SubscriptionPage() {
             className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
           >
             <CreditCard className="mr-2 h-4 w-4" />
-            Suscribirse Mensual
+            {sub?.plan === "MONTHLY" && sub?.status === "ACTIVE" ? "Extender Plan" : "Suscribirse Mensual"}
           </button>
         </div>
 
@@ -126,7 +193,7 @@ export default function SubscriptionPage() {
             className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
           >
             <CreditCard className="mr-2 h-4 w-4" />
-            Suscribirse Anual
+            {sub?.plan === "ANNUAL" && sub?.status === "ACTIVE" ? "Extender Plan" : "Suscribirse Anual"}
           </button>
         </div>
       </div>
@@ -154,6 +221,42 @@ export default function SubscriptionPage() {
             </button>
           </form>
         </div>
+      </div>
+
+      {/* History Section */}
+      <div className="space-y-4">
+        <h3 className="text-xl font-bold flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          Historial de Pagos
+        </h3>
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead>Monto</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data?.history?.length > 0 ? (
+                data.history.map((log: any) => (
+                  <TableRow key={log.id}>
+                    <TableCell>{new Date(log.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{log.details}</TableCell>
+                    <TableCell>$20.00</TableCell> {/* Mock amount for now */}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center text-muted-foreground">
+                    No hay pagos registrados
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </Card>
       </div>
     </div>
   )

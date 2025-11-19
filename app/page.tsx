@@ -36,7 +36,8 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid gap-8 w-full max-w-[64rem] md:grid-cols-2 lg:gap-12">
+          {/* Pricing Cards moved to Hero */}
+          <div className="grid gap-8 w-full max-w-[64rem] md:grid-cols-2 lg:gap-12 mt-8">
             <Card className="flex flex-col text-left">
               <CardHeader>
                 <CardTitle className="text-2xl">Mensual</CardTitle>
@@ -58,7 +59,7 @@ export default function HomePage() {
               </CardContent>
               <CardFooter>
                 <Button className="w-full" asChild>
-                  <Link href="/register">Comenzar Ahora</Link>
+                  <Link href="/register">Registrarse y Suscribirse</Link>
                 </Button>
               </CardFooter>
             </Card>
