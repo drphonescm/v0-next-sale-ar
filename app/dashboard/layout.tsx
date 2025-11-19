@@ -21,14 +21,13 @@ export default async function DashboardLayout({
     redirect("/admin")
   }
 
-  let status = "active"
+  let status = "blocked"
   try {
     const result = await checkSubscriptionStatus(session.user.id)
     status = result.status
   } catch (error) {
     console.error("[v0] Error checking subscription status:", error)
-    // Default to active if check fails to allow user access
-    status = "active"
+    status = "blocked"
   }
   
   const isBlocked = status === "blocked"

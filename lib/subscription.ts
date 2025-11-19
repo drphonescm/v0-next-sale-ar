@@ -12,6 +12,10 @@ export async function checkSubscriptionStatus(userId: string) {
     const now = new Date()
     const endDate = subscription.endDate ? new Date(subscription.endDate) : null
 
+    if (subscription.status === "pending") {
+      return { status: "blocked", subscription }
+    }
+
     // If no end date (e.g. pending), return status
     if (!endDate) return { status: subscription.status, subscription }
 
@@ -59,7 +63,6 @@ export async function checkSubscriptionStatus(userId: string) {
     return { status: subscription.status, subscription }
   } catch (error) {
     console.error("[v0] Error in checkSubscriptionStatus:", error)
-    // Return active status on error to prevent blocking legitimate users
-    return { status: "active", subscription: null }
+    return { status: "blocked", subscription: null }
   }
 }
