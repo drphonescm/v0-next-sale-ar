@@ -27,6 +27,9 @@ model User {
   resetToken   String?  @unique
   resetTokenExpiry DateTime?
   createdAt    DateTime @default(now())
+
+  subscriptions Subscription[]
+  auditLogs     AuditLog[]
 }
 
 model Company {
@@ -353,4 +356,43 @@ model ChangeLog {
   after       String?
   userId      String
   createdAt   DateTime @default(now())
+}
+
+// --- Suscripciones ---
+model Subscription {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  plan          String    // MONTHLY | ANNUAL
+  status        String    @default("pending") // pending | active | grace | blocked
+  startDate     DateTime?
+  endDate       DateTime?
+  paymentMethod String?   // mercadopago | coupon
+  mercadoPagoId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// --- Cupones ---
+model Coupon {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  type      String   // MONTHLY | ANNUAL
+  status    String   @default("active") // active | used
+  usedBy    String?  // User ID
+  createdAt DateTime @default(now())
+}
+
+// --- AuditLog ---
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  details   String?
+  timestamp DateTime @default(now())
+
+  @@index([userId])
 }

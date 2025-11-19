@@ -1,12 +1,209 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Plus, Trash2, RefreshCw } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+
+interface Coupon {
+  id: string
+  code: string
+  type: string
+  status: string
+  usedBy: string | null
+  createdAt: string
+}
+
 export default function AdminCouponsPage() {
+  const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isCreating, setIsCreating] = useState(false)
+  const [newCoupon, setNewCoupon] = useState({ code: "", type: "MONTHLY" })
+  const router = useRouter()
+
+  const fetchCoupons = async () => {
+    try {
+      const res = await fetch("/api/admin/coupons")
+      if (res.ok) {
+        const data = await res.json()
+        setCoupons(data)
+      }
+    } catch (error) {
+      console.error("Error fetching coupons:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchCoupons()
+  }, [])
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const res = await fetch("/api/admin/coupons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newCoupon),
+      })
+
+      if (res.ok) {
+        setNewCoupon({ code: "", type: "MONTHLY" })
+        setIsCreating(false)
+        fetchCoupons()
+      } else {
+        alert("Error creating coupon")
+      }
+    } catch (error) {
+      console.error("Error creating coupon:", error)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("¿Estás seguro de eliminar este cupón?")) return
+
+    try {
+      const res = await fetch(`/api/admin/coupons?id=${id}`, {
+        method: "DELETE",
+      })
+
+      if (res.ok) {
+        fetchCoupons()
+      }
+    } catch (error) {
+      console.error("Error deleting coupon:", error)
+    }
+  }
+
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold tracking-tight">Gestión de Cupones</h2>
-      <p className="text-muted-foreground">Aquí podrás crear y administrar los cupones de descuento.</p>
-      
-      {/* Added empty state message */}
-      <div className="flex flex-col items-center justify-center h-[200px] border rounded-md bg-muted/10">
-        <p className="text-muted-foreground">No hay datos de cupones disponibles en este momento.</p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Gestión de Cupones</h2>
+          <p className="text-muted-foreground">Crea y administra cupones de acceso.</p>
+        </div>
+        <button
+          onClick={() => setIsCreating(!isCreating)}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Nuevo Cupón
+        </button>
+      </div>
+
+      {isCreating && (
+        <div className="border rounded-lg p-4 bg-muted/50">
+          <form onSubmit={handleCreate} className="flex gap-4 items-end">
+            <div className="grid gap-2">
+              <label htmlFor="code" className="text-sm font-medium">
+                Código
+              </label>
+              <input
+                id="code"
+                value={newCoupon.code}
+                onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value.toUpperCase() })}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-[200px]"
+                placeholder="EJ: PROMO2024"
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="type" className="text-sm font-medium">
+                Tipo de Plan
+              </label>
+              <select
+                id="type"
+                value={newCoupon.type}
+                onChange={(e) => setNewCoupon({ ...newCoupon, type: e.target.value })}
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-[200px]"
+              >
+                <option value="MONTHLY">Mensual</option>
+                <option value="ANNUAL">Anual</option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+            >
+              Crear
+            </button>
+          </form>
+        </div>
+      )}
+
+      <div className="border rounded-md">
+        <div className="relative w-full overflow-auto">
+          <table className="w-full caption-bottom text-sm">
+            <thead className="[&_tr]:border-b">
+              <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Código</th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Tipo</th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Estado</th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Usado Por</th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Creado</th>
+                <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="[&_tr:last-child]:border-0">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="h-24 text-center">
+                    Cargando...
+                  </td>
+                </tr>
+              ) : coupons.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="h-24 text-center text-muted-foreground">
+                    No hay cupones creados.
+                  </td>
+                </tr>
+              ) : (
+                coupons.map((coupon) => (
+                  <tr
+                    key={coupon.id}
+                    className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                  >
+                    <td className="p-4 align-middle font-medium">{coupon.code}</td>
+                    <td className="p-4 align-middle">
+                      {coupon.type === "MONTHLY" ? (
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-blue-100 text-blue-800 hover:bg-blue-200">
+                          Mensual
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-purple-100 text-purple-800 hover:bg-purple-200">
+                          Anual
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4 align-middle">
+                      {coupon.status === "active" ? (
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-green-100 text-green-800 hover:bg-green-200">
+                          Activo
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-gray-100 text-gray-800 hover:bg-gray-200">
+                          Usado
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4 align-middle text-muted-foreground">{coupon.usedBy || "-"}</td>
+                    <td className="p-4 align-middle text-muted-foreground">
+                      {new Date(coupon.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="p-4 align-middle text-right">
+                      <button
+                        onClick={() => handleDelete(coupon.id)}
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 text-red-500"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
