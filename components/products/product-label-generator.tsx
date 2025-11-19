@@ -42,60 +42,62 @@ export function ProductLabelGenerator({ product, company }: ProductLabelGenerato
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Label Preview (Visible) */}
-      <div className="border rounded-lg overflow-hidden shadow-sm">
+      <div className="border rounded-lg overflow-hidden shadow-sm bg-white">
         <div
           ref={labelRef}
-          className="flex w-[400px] h-[200px] bg-white"
+          className="flex w-[500px] h-[250px] bg-white"
           style={{ fontFamily: "Arial, sans-serif" }}
         >
           {/* Left Side - Product Info */}
-          <div className="flex-1 p-4 flex flex-col justify-between relative">
-            <div className="flex justify-between items-start">
+          <div className="flex-1 p-6 flex flex-col justify-between relative border-r border-gray-100">
+            <div className="flex justify-between items-start h-[40px]">
               {company?.logoUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img 
                   src={company.logoUrl || "/placeholder.svg"} 
                   alt="Logo" 
-                  className="h-8 object-contain max-w-[80px]" 
+                  className="h-10 object-contain max-w-[120px]" 
                   crossOrigin="anonymous"
                 />
               )}
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider text-right flex-1 ml-2">
+              <span className="text-xs font-bold text-gray-600 uppercase tracking-wider text-right flex-1 ml-2 mt-1">
                 {company?.name || "Empresa"}
               </span>
             </div>
 
-            <div className="flex-1 flex items-center">
-              <h3 className="text-lg font-bold leading-tight line-clamp-3">
+            <div className="flex-1 flex items-center justify-center my-2">
+              <h3 className="text-3xl font-bold leading-tight line-clamp-3 text-black text-left w-full">
                 {product.name}
               </h3>
             </div>
 
-            <div className="mt-2">
+            <div className="mt-2 flex justify-start">
               <Barcode 
                 value={product.sku || product.id.substring(0, 8)} 
-                height={30} 
-                width={1.5}
-                fontSize={10}
+                height={40} 
+                width={2}
+                fontSize={14}
                 margin={0}
                 displayValue={true}
+                background="transparent"
+                lineColor="#000000"
               />
             </div>
           </div>
 
           {/* Right Side - Price */}
-          <div className="w-[140px] bg-yellow-400 flex items-center justify-center p-2 relative">
-            <div className="text-center">
-              <span className="block text-4xl font-bold tracking-tighter">
-                {formatCurrency(product.price)}
+          <div className="w-[200px] bg-yellow-400 flex flex-col items-center justify-center p-4 relative">
+            <span className="text-sm font-bold text-black/60 mb-2 uppercase tracking-widest">Precio</span>
+            <div className="text-center w-full">
+              <span className="block text-5xl font-extrabold tracking-tighter text-black break-all">
+                {formatCurrency(product.price).replace(/\s/g, '')}
               </span>
             </div>
-            {/* Decorative triangle/cutout effect if desired, keeping it simple for now */}
           </div>
         </div>
       </div>
 
-      <Button onClick={handleDownload} disabled={isGenerating} size="sm" className="w-full">
+      <Button onClick={handleDownload} disabled={isGenerating} size="sm" className="w-full max-w-[500px]">
         {isGenerating ? (
           <>
             <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
