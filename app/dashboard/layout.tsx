@@ -78,24 +78,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             </SidebarMenuItem>
 
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("products")}>
-                <Link href="/dashboard/products">
-                  <PackageIcon />
-                  <span>{t("products")}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("customers")}>
-                <Link href="/dashboard/customers">
-                  <UsersIcon />
-                  <span>{t("customers")}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={t("sales")}>
                 <Link href="/dashboard/sales">
                   <ShoppingCartIcon />
@@ -114,6 +96,24 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             </SidebarMenuItem>
 
             <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip={t("products")}>
+                <Link href="/dashboard/products">
+                  <PackageIcon />
+                  <span>{t("products")}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip={t("customers")}>
+                <Link href="/dashboard/customers">
+                  <UsersIcon />
+                  <span>{t("customers")}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={t("reports")}>
                 <Link href="/dashboard/reports">
                   <BarChart3Icon />
@@ -123,19 +123,19 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             </SidebarMenuItem>
 
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("settings")}>
-                <Link href="/dashboard/settings">
-                  <SettingsIcon />
-                  <span>{t("settings")}</span>
+              <SidebarMenuButton asChild tooltip="Historial">
+                <Link href="/dashboard/historial">
+                  <ClockIcon />
+                  <span>Historial</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Historial">
-                <Link href="/dashboard/historial">
-                  <ClockIcon />
-                  <span>Historial</span>
+              <SidebarMenuButton asChild tooltip={t("settings")}>
+                <Link href="/dashboard/settings">
+                  <SettingsIcon />
+                  <span>{t("settings")}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
