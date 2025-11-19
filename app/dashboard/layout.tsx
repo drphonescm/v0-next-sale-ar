@@ -16,7 +16,7 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, PackageIcon, UsersIcon, ShoppingCartIcon, WalletIcon, LogOutIcon, BarChart3Icon, SettingsIcon, TrashIcon } from 'lucide-react'
+import { LayoutDashboardIcon, PackageIcon, UsersIcon, ShoppingCartIcon, WalletIcon, LogOutIcon, BarChart3Icon, SettingsIcon, TrashIcon, ClockIcon } from 'lucide-react'
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -134,7 +134,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Historial">
                 <Link href="/dashboard/historial">
-                  <TrashIcon />
+                  <ClockIcon />
                   <span>Historial</span>
                 </Link>
               </SidebarMenuButton>

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Table,
   TableBody,
@@ -13,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { RotateCcwIcon, PackageIcon, UsersIcon, ShoppingCartIcon, WalletIcon } from 'lucide-react'
+import { RotateCcwIcon, PackageIcon, UsersIcon, ShoppingCartIcon, WalletIcon, FilterIcon } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/hooks/use-translation"
 
@@ -25,6 +27,11 @@ export default function DeletedItemsPage() {
   const [deletedCustomers, setDeletedCustomers] = useState<any[]>([])
   const [deletedSales, setDeletedSales] = useState<any[]>([])
   const [deletedCash, setDeletedCash] = useState<any[]>([])
+  
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [startTime, setStartTime] = useState("00:00")
+  const [endTime, setEndTime] = useState("23:59")
 
   useEffect(() => {
     loadDeletedItems()
@@ -33,11 +40,18 @@ export default function DeletedItemsPage() {
   const loadDeletedItems = async () => {
     setLoading(true)
     try {
+      const params = new URLSearchParams()
+      if (startDate && endDate) {
+        params.append("startDate", `${startDate}T${startTime}`)
+        params.append("endDate", `${endDate}T${endTime}`)
+      }
+      const queryString = params.toString() ? `?${params.toString()}` : ""
+
       const [products, customers, sales, cash] = await Promise.all([
-        fetch("/api/eliminados/products").then((r) => r.json()),
-        fetch("/api/eliminados/customers").then((r) => r.json()),
-        fetch("/api/eliminados/sales").then((r) => r.json()),
-        fetch("/api/eliminados/cash").then((r) => r.json()),
+        fetch(`/api/eliminados/products${queryString}`).then((r) => r.json()),
+        fetch(`/api/eliminados/customers${queryString}`).then((r) => r.json()),
+        fetch(`/api/eliminados/sales${queryString}`).then((r) => r.json()),
+        fetch(`/api/eliminados/cash${queryString}`).then((r) => r.json()),
       ])
 
       setDeletedProducts(products || [])
@@ -99,6 +113,67 @@ export default function DeletedItemsPage() {
           Visualiza y restaura elementos que han sido eliminados
         </p>
       </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <FilterIcon className="size-4" />
+            Filtros
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-5 items-end">
+            <div className="space-y-1.5">
+              <Label htmlFor="startDate" className="text-xs">Fecha Inicio</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="startTime" className="text-xs">Hora Inicio</Label>
+              <Input
+                id="startTime"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="endDate" className="text-xs">Fecha Fin</Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="endTime" className="text-xs">Hora Fin</Label>
+              <Input
+                id="endTime"
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <Button 
+              onClick={loadDeletedItems} 
+              size="sm" 
+              className="h-8"
+              disabled={loading}
+            >
+              Aplicar Filtros
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="products" className="w-full">
         <TabsList className="grid w-full grid-cols-4">

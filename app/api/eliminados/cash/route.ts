@@ -8,13 +8,27 @@ export async function GET(request: NextRequest) {
     const companyId = await getCompanyId()
     console.log("[v0] Historial cash - companyId:", companyId)
     
-    const movements = await db.cashMovement.findMany({
-      where: {
-        companyId,
-        deletedAt: {
-          not: null,
-        },
+    const { searchParams } = new URL(request.url)
+    const startDate = searchParams.get("startDate")
+    const endDate = searchParams.get("endDate")
+
+    const whereClause: any = {
+      companyId,
+      deletedAt: {
+        not: null,
       },
+    }
+
+    if (startDate && endDate) {
+      whereClause.deletedAt = {
+        ...whereClause.deletedAt,
+        gte: new Date(startDate),
+        lte: new Date(endDate),
+      }
+    }
+    
+    const movements = await db.cashMovement.findMany({
+      where: whereClause,
       orderBy: {
         deletedAt: "desc",
       },
