@@ -16,8 +16,10 @@ export const dynamic = 'force-dynamic'
 export default async function AdminUsersPage() {
   const users = await db.user.findMany({
     orderBy: { createdAt: 'desc' },
+    include: {
+      company: true
+    }
   })
-  // </CHANGE>
 
   return (
     <div className="space-y-4">
@@ -31,7 +33,7 @@ export default async function AdminUsersPage() {
               <TableHead>Nombre</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Rol</TableHead>
-              <TableHead>Empresa ID</TableHead>
+              <TableHead>Empresa</TableHead>
               <TableHead>Fecha Registro</TableHead>
             </TableRow>
           </TableHeader>
@@ -52,7 +54,9 @@ export default async function AdminUsersPage() {
                       {user.role || 'USER'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{user.companyId || 'N/A'}</TableCell>
+                  <TableCell className="font-medium">
+                    {user.company?.name || <span className="text-muted-foreground text-xs font-mono">{user.companyId || 'N/A'}</span>}
+                  </TableCell>
                   <TableCell>
                     {user.createdAt ? format(new Date(user.createdAt), "d MMM yyyy", { locale: es }) : '-'}
                   </TableCell>
