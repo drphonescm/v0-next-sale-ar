@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     }
 
     if (coupon.status === "used") {
-      return new NextResponse("Coupon already used", { status: 400 })
+      return new NextResponse("This coupon has already been used", { status: 400 })
     }
 
     // 2. Calculate dates
@@ -53,7 +53,6 @@ export async function POST(req: Request) {
           paymentMethod: "coupon",
         },
       }),
-      // Update Coupon
       db.coupon.update({
         where: { id: coupon.id },
         data: {

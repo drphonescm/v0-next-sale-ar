@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Trash2, RefreshCw } from 'lucide-react'
+import { Plus, Trash2, RefreshCw, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface Coupon {
@@ -17,7 +17,9 @@ export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loading, setLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
+  const [manualMode, setManualMode] = useState(false)
   const [newCoupon, setNewCoupon] = useState({ code: "", type: "MONTHLY" })
+  const [generating, setGenerating] = useState(false)
   const router = useRouter()
 
   const fetchCoupons = async () => {
@@ -38,6 +40,31 @@ export default function AdminCouponsPage() {
     fetchCoupons()
   }, [])
 
+  const handleGenerateCoupon = async (type: string) => {
+    setGenerating(true)
+    try {
+      const res = await fetch("/api/admin/coupons/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        alert(`¡Cupón generado exitosamente!\n\nCódigo: ${data.code}\nTipo: ${type === "MONTHLY" ? "Mensual" : "Anual"}`)
+        fetchCoupons()
+      } else {
+        const error = await res.text()
+        alert(`Error: ${error}`)
+      }
+    } catch (error) {
+      console.error("Error generating coupon:", error)
+      alert("Error generando cupón")
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -50,6 +77,7 @@ export default function AdminCouponsPage() {
       if (res.ok) {
         setNewCoupon({ code: "", type: "MONTHLY" })
         setIsCreating(false)
+        setManualMode(false)
         fetchCoupons()
       } else {
         alert("Error creating coupon")
@@ -92,42 +120,82 @@ export default function AdminCouponsPage() {
       </div>
 
       {isCreating && (
-        <div className="border rounded-lg p-4 bg-muted/50">
-          <form onSubmit={handleCreate} className="flex gap-4 items-end">
-            <div className="grid gap-2">
-              <label htmlFor="code" className="text-sm font-medium">
-                Código
-              </label>
-              <input
-                id="code"
-                value={newCoupon.code}
-                onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value.toUpperCase() })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-[200px]"
-                placeholder="EJ: PROMO2024"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="type" className="text-sm font-medium">
-                Tipo de Plan
-              </label>
-              <select
-                id="type"
-                value={newCoupon.type}
-                onChange={(e) => setNewCoupon({ ...newCoupon, type: e.target.value })}
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-[200px]"
-              >
-                <option value="MONTHLY">Mensual</option>
-                <option value="ANNUAL">Anual</option>
-              </select>
-            </div>
+        <div className="border rounded-lg p-6 bg-muted/50 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Crear Cupón</h3>
             <button
-              type="submit"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+              onClick={() => setManualMode(!manualMode)}
+              className="text-sm text-muted-foreground hover:text-foreground"
             >
-              Crear
+              {manualMode ? "Cambiar a Auto-generación" : "Modo Manual"}
             </button>
-          </form>
+          </div>
+
+          {!manualMode ? (
+            // Auto-generate mode
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Genera códigos únicos automáticamente para cada tipo de suscripción.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => handleGenerateCoupon("MONTHLY")}
+                  disabled={generating}
+                  className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg hover:border-primary hover:bg-primary/5 transition-colors disabled:opacity-50"
+                >
+                  <Sparkles className="h-8 w-8 mb-2 text-blue-500" />
+                  <span className="font-medium">Generar Cupón Mensual</span>
+                  <span className="text-xs text-muted-foreground mt-1">Código automático</span>
+                </button>
+                <button
+                  onClick={() => handleGenerateCoupon("ANNUAL")}
+                  disabled={generating}
+                  className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg hover:border-primary hover:bg-primary/5 transition-colors disabled:opacity-50"
+                >
+                  <Sparkles className="h-8 w-8 mb-2 text-purple-500" />
+                  <span className="font-medium">Generar Cupón Anual</span>
+                  <span className="text-xs text-muted-foreground mt-1">Código automático</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            // Manual mode
+            <form onSubmit={handleCreate} className="flex gap-4 items-end">
+              <div className="grid gap-2">
+                <label htmlFor="code" className="text-sm font-medium">
+                  Código
+                </label>
+                <input
+                  id="code"
+                  value={newCoupon.code}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value.toUpperCase() })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-[200px]"
+                  placeholder="EJ: PROMO2024"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="type" className="text-sm font-medium">
+                  Tipo de Plan
+                </label>
+                <select
+                  id="type"
+                  value={newCoupon.type}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, type: e.target.value })}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-[200px]"
+                >
+                  <option value="MONTHLY">Mensual</option>
+                  <option value="ANNUAL">Anual</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+              >
+                Crear
+              </button>
+            </form>
+          )}
         </div>
       )}
 
