@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
+import { ADMIN_EMAIL } from "@/lib/utils"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -60,7 +61,11 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Credenciales inválidas")
       } else if (result?.ok) {
-        router.push("/dashboard")
+        if (email === ADMIN_EMAIL) {
+          router.push("/admin")
+        } else {
+          router.push("/dashboard")
+        }
         router.refresh()
       }
     } catch (err) {
