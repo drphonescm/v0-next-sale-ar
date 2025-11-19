@@ -121,8 +121,8 @@ export default function DeletedItemsPage() {
             Filtros
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-5 items-end">
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="startDate" className="text-xs">Fecha Inicio</Label>
               <Input
@@ -130,17 +130,7 @@ export default function DeletedItemsPage() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="h-8 text-sm"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="startTime" className="text-xs">Hora Inicio</Label>
-              <Input
-                id="startTime"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="h-8 text-sm"
+                className="h-9 text-sm"
               />
             </div>
             <div className="space-y-1.5">
@@ -150,7 +140,20 @@ export default function DeletedItemsPage() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="h-8 text-sm"
+                className="h-9 text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="startTime" className="text-xs">Hora Inicio</Label>
+              <Input
+                id="startTime"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="h-9 text-sm"
               />
             </div>
             <div className="space-y-1.5">
@@ -160,13 +163,16 @@ export default function DeletedItemsPage() {
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="h-8 text-sm"
+                className="h-9 text-sm"
               />
             </div>
+          </div>
+
+          <div className="flex justify-end">
             <Button 
               onClick={loadDeletedItems} 
               size="sm" 
-              className="h-8"
+              className="h-9"
               disabled={loading}
             >
               Aplicar Filtros
