@@ -1,18 +1,19 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import useSWR from "swr"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { PlusIcon, PencilIcon, TrashIcon, PackageIcon, DownloadIcon, SearchIcon } from "lucide-react"
+import { PlusIcon, PencilIcon, TrashIcon, PackageIcon, DownloadIcon, SearchIcon } from 'lucide-react'
 import { DeleteProductDialog } from "@/components/products/delete-product-dialog"
 import { useTranslation } from "@/hooks/use-translation"
 import * as XLSX from "xlsx"
 import Barcode from "react-barcode"
+import { ProductLabelGenerator } from "@/components/products/product-label-generator"
 
 const fetcher = (url: string) =>
   fetch(url).then((res) => {
@@ -23,6 +24,7 @@ const fetcher = (url: string) =>
 export default function ProductsPage() {
   const router = useRouter()
   const { data: products, error, mutate } = useSWR("/api/products", fetcher)
+  const { data: company } = useSWR("/api/settings", fetcher)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
@@ -232,14 +234,12 @@ export default function ProductsPage() {
             </Table>
           )}
 
-          {showBarcodeFor && filteredProducts.find((p: any) => p.id === showBarcodeFor)?.sku && (
-            <div className="mt-4 p-3 border rounded-lg bg-background">
-              <div className="flex flex-col items-center gap-2">
-                <p className="text-sm font-medium">
-                  {filteredProducts.find((p: any) => p.id === showBarcodeFor)?.name}
-                </p>
-                <Barcode value={filteredProducts.find((p: any) => p.id === showBarcodeFor)?.sku} height={50} />
-              </div>
+          {showBarcodeFor && filteredProducts.find((p: any) => p.id === showBarcodeFor) && (
+            <div className="mt-4 p-4 border rounded-lg bg-muted/20 flex justify-center">
+              <ProductLabelGenerator 
+                product={filteredProducts.find((p: any) => p.id === showBarcodeFor)} 
+                company={company}
+              />
             </div>
           )}
         </CardContent>
