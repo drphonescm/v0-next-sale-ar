@@ -49,7 +49,7 @@ export function ProductLabelGenerator({ product, company }: ProductLabelGenerato
           style={{ fontFamily: "Arial, sans-serif" }}
         >
           {/* Left Side - Product Info */}
-          <div className="flex-1 p-6 flex flex-col justify-between relative border-r border-gray-100">
+          <div className="flex-1 p-6 flex flex-col justify-between relative border-r border-gray-100 overflow-hidden">
             <div className="flex justify-between items-start h-[40px]">
               {company?.logoUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -86,10 +86,10 @@ export function ProductLabelGenerator({ product, company }: ProductLabelGenerato
           </div>
 
           {/* Right Side - Price */}
-          <div className="w-[200px] bg-yellow-400 flex flex-col items-center justify-center p-4 relative">
+          <div className="w-[240px] bg-yellow-400 flex flex-col items-center justify-center p-4 relative shrink-0">
             <span className="text-sm font-bold text-black/60 mb-2 uppercase tracking-widest">Precio</span>
-            <div className="text-center w-full">
-              <span className="block text-5xl font-extrabold tracking-tighter text-black break-all">
+            <div className="text-center w-full px-1">
+              <span className="block text-5xl font-extrabold tracking-tighter text-black whitespace-nowrap overflow-hidden text-ellipsis">
                 {formatCurrency(product.price).replace(/\s/g, '')}
               </span>
             </div>
