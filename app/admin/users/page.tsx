@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminUsersPage() {
   const users = await db.user.findMany({
     orderBy: { createdAt: 'desc' },

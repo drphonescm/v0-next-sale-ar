@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { UsersIcon, CreditCardIcon, TicketIcon, ActivityIcon, BuildingIcon } from 'lucide-react'
 import { db } from "@/lib/db"
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminDashboardPage() {
   const userCount = await db.user.count()
   const companyCount = await db.company.count()
