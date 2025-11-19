@@ -39,12 +39,15 @@ export async function POST(req: Request) {
     }
 
     const startDate = new Date()
-    const endDate = new Date()
+    startDate.setUTCHours(0, 0, 0, 0) // Iniciar a las 00:00:00 UTC del día actual
+    
+    const endDate = new Date(startDate)
     if (coupon.type === "MONTHLY") {
-      endDate.setDate(endDate.getDate() + 30) // 30 días exactos
+      endDate.setUTCDate(endDate.getUTCDate() + 30)
     } else if (coupon.type === "ANNUAL") {
-      endDate.setDate(endDate.getDate() + 365) // 365 días exactos
+      endDate.setUTCDate(endDate.getUTCDate() + 365)
     }
+    endDate.setUTCHours(23, 59, 59, 999) // Terminar a las 23:59:59.999 UTC del día final
 
     await db.subscription.updateMany({
       where: {
@@ -78,7 +81,7 @@ export async function POST(req: Request) {
         data: {
           userId: user.id,
           action: "REDEEM_COUPON",
-          details: `Canjeó cupón ${code} (${coupon.type === "MONTHLY" ? "Mensual - 30 días" : "Anual - 365 días"}) - Vence: ${endDate.toLocaleDateString("es-AR")}`,
+          details: `Canjeó cupón ${code} (${coupon.type === "MONTHLY" ? "Mensual - 30 días" : "Anual - 365 días"}) - Inicio: ${startDate.toLocaleDateString("es-AR")} - Vence: ${endDate.toLocaleDateString("es-AR")}`,
         },
       }),
     ])
