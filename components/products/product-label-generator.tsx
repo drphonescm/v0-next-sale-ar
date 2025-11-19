@@ -36,8 +36,21 @@ export function ProductLabelGenerator({ product, company }: ProductLabelGenerato
     return new Intl.NumberFormat("es-AR", {
       style: "currency",
       currency: "ARS",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount)
   }
+
+  const getPriceFontSize = (price: string) => {
+    const length = price.length
+    if (length <= 6) return "text-7xl" // $1.000
+    if (length <= 8) return "text-6xl" // $10.000
+    if (length <= 10) return "text-5xl" // $100.000
+    return "text-4xl" // $1.000.000+
+  }
+
+  const formattedPrice = formatCurrency(product.price).replace(/\s/g, '')
+  const priceFontSize = getPriceFontSize(formattedPrice)
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -89,8 +102,8 @@ export function ProductLabelGenerator({ product, company }: ProductLabelGenerato
           <div className="w-[300px] bg-yellow-400 flex flex-col items-center justify-center p-4 relative shrink-0">
             <span className="text-lg font-bold text-black/60 mb-2 uppercase tracking-widest">Precio</span>
             <div className="text-center w-full px-1">
-              <span className="block text-6xl font-extrabold tracking-tighter text-black whitespace-nowrap">
-                {formatCurrency(product.price).replace(/\s/g, '')}
+              <span className={`block ${priceFontSize} font-extrabold tracking-tighter text-black whitespace-nowrap`}>
+                {formattedPrice}
               </span>
             </div>
           </div>
