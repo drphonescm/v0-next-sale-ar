@@ -14,7 +14,6 @@ export async function GET() {
     const user = await db.user.findUnique({
       where: { email: session.user.email },
       include: {
-        subscription: true,
         company: true,
       },
     })
@@ -22,6 +21,11 @@ export async function GET() {
     if (!user) {
       return new NextResponse("User not found", { status: 404 })
     }
+
+    const subscription = await db.subscription.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    })
 
     const history = await db.auditLog.findMany({
       where: {
@@ -44,7 +48,7 @@ export async function GET() {
     })
 
     return NextResponse.json({
-      subscription: user.subscription,
+      subscription,
       history,
       usedCoupons,
     })

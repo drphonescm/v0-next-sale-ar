@@ -80,8 +80,9 @@ export default function SubscriptionPage() {
   }
 
   const sub = data?.subscription
-  const isBlocked = sub?.status === "BLOCKED"
-  const isGrace = sub?.status === "GRACE"
+  const isBlocked = sub?.status === "blocked"
+  const isGrace = sub?.status === "grace"
+  const isActive = sub?.status === "active"
   
   const daysRemaining = sub?.endDate 
     ? Math.ceil((new Date(sub.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
@@ -127,14 +128,14 @@ export default function SubscriptionPage() {
           </div>
           <div>
             <div className="text-sm font-medium text-muted-foreground">Estado</div>
-            <Badge variant={sub?.status === "ACTIVE" ? "default" : "destructive"}>
-              {sub?.status || "Inactivo"}
+            <Badge variant={isActive ? "default" : isGrace ? "outline" : "destructive"}>
+              {isActive ? "Activo" : isGrace ? "Periodo de Gracia" : isBlocked ? "Bloqueado" : "Inactivo"}
             </Badge>
           </div>
           <div>
             <div className="text-sm font-medium text-muted-foreground">Vence el</div>
             <div className="text-lg font-bold">{sub?.endDate ? new Date(sub.endDate).toLocaleDateString("es-AR") : "-"}</div>
-            {daysRemaining > 0 && sub?.status === "ACTIVE" && (
+            {daysRemaining > 0 && isActive && (
               <div className="text-xs text-muted-foreground mt-1">
                 {daysRemaining} {daysRemaining === 1 ? "día restante" : "días restantes"}
               </div>
