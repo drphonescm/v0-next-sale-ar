@@ -7,17 +7,23 @@ export async function checkSubscriptionStatus(userId: string) {
       orderBy: { createdAt: "desc" },
     })
 
-    if (!subscription) return { status: "blocked", subscription: null }
+    if (!subscription) {
+      console.log("[v0] No subscription found for user:", userId)
+      return { status: "blocked", subscription: null }
+    }
 
     const now = new Date()
     const endDate = subscription.endDate ? new Date(subscription.endDate) : null
 
-    if (subscription.status === "pending") {
+    if (subscription.status === "pending" || subscription.status === "blocked") {
+      console.log("[v0] Subscription is pending or blocked:", subscription.status)
       return { status: "blocked", subscription }
     }
 
-    // Si no hay fecha de fin, retornar el estado actual
-    if (!endDate) return { status: subscription.status, subscription }
+    if (!endDate) {
+      console.log("[v0] Subscription has no end date, blocking for safety")
+      return { status: "blocked", subscription }
+    }
 
     if (now > endDate) {
       const gracePeriodEnd = new Date(endDate)
@@ -25,40 +31,53 @@ export async function checkSubscriptionStatus(userId: string) {
       gracePeriodEnd.setUTCHours(23, 59, 59, 999)
 
       if (now <= gracePeriodEnd && subscription.status === "active") {
+        console.log("[v0] Subscription expired, entering grace period until:", gracePeriodEnd)
+        
         await db.subscription.update({
           where: { id: subscription.id },
           data: { status: "grace" },
         })
         
-        await db.auditLog.create({
-          data: {
-            userId,
-            action: "SUBSCRIPTION_GRACE",
-            details: `Suscripción entró en periodo de gracia. Vencimiento: ${endDate.toLocaleDateString("es-AR")}. Bloqueo definitivo: ${gracePeriodEnd.toLocaleDateString("es-AR")}`,
-          },
-        }).catch(() => {}) // No-critical
+        try {
+          await db.auditLog.create({
+            data: {
+              userId,
+              action: "SUBSCRIPTION_GRACE",
+              details: `Suscripción entró en periodo de gracia. Vencimiento: ${endDate.toLocaleDateString("es-AR")}. Bloqueo definitivo: ${gracePeriodEnd.toLocaleDateString("es-AR")}`,
+            },
+          })
+        } catch (err) {
+          console.error("[v0] Failed to create audit log:", err)
+        }
         
         return { status: "grace", subscription: { ...subscription, status: "grace" } }
       }
 
       if (now > gracePeriodEnd) {
+        console.log("[v0] Grace period ended, blocking subscription")
+        
         await db.subscription.update({
           where: { id: subscription.id },
           data: { status: "blocked" },
         })
 
-        await db.auditLog.create({
-          data: {
-            userId,
-            action: "SUBSCRIPTION_BLOCKED",
-            details: `Suscripción bloqueada automáticamente. Periodo de gracia terminó el ${gracePeriodEnd.toLocaleDateString("es-AR")}`,
-          },
-        }).catch(() => {}) // No-critical
+        try {
+          await db.auditLog.create({
+            data: {
+              userId,
+              action: "SUBSCRIPTION_BLOCKED",
+              details: `Suscripción bloqueada automáticamente. Periodo de gracia terminó el ${gracePeriodEnd.toLocaleDateString("es-AR")}`,
+            },
+          })
+        } catch (err) {
+          console.error("[v0] Failed to create audit log:", err)
+        }
 
         return { status: "blocked", subscription: { ...subscription, status: "blocked" } }
       }
     }
 
+    console.log("[v0] Subscription is active, expires:", endDate)
     return { status: subscription.status, subscription }
   } catch (error) {
     console.error("[v0] Error in checkSubscriptionStatus:", error)
