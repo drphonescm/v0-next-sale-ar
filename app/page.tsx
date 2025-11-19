@@ -25,7 +25,7 @@ export default function HomePage() {
       </header>
 
       <main className="flex-1">
-        <section className="container flex flex-col items-center justify-center gap-4 py-24 md:py-32">
+        <section className="container flex flex-col items-center justify-center gap-8 py-24 md:py-32">
           <div className="flex max-w-[980px] flex-col items-center gap-4 text-center">
             <h1 className="text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:leading-[1.1]">
               Sistema de Gestión de Ventas Multi-Empresa
@@ -34,14 +34,65 @@ export default function HomePage() {
               Administra tus productos, clientes, ventas y flujo de caja en una sola plataforma. Diseñado para empresas
               argentinas.
             </p>
-            <div className="flex gap-4">
-              <Button asChild size="lg">
-                <Link href="/register">Comenzar Gratis</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg">
-                <Link href="/login">Iniciar Sesión</Link>
-              </Button>
-            </div>
+          </div>
+
+          <div className="grid gap-8 w-full max-w-[64rem] md:grid-cols-2 lg:gap-12">
+            <Card className="flex flex-col text-left">
+              <CardHeader>
+                <CardTitle className="text-2xl">Mensual</CardTitle>
+                <CardDescription>Ideal para comenzar</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 flex-1">
+                <div className="text-4xl font-bold">$20</div>
+                <ul className="grid gap-2 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="size-4" /> Acceso completo al sistema
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="size-4" /> Usuarios ilimitados
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="size-4" /> Soporte prioritario
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full" asChild>
+                  <Link href="/register">Comenzar Ahora</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+            <Card className="flex flex-col border-primary relative overflow-hidden text-left">
+              <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold rounded-bl-lg">
+                AHORRA 20%
+              </div>
+              <CardHeader>
+                <CardTitle className="text-2xl">Anual</CardTitle>
+                <CardDescription>Para negocios establecidos</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 flex-1">
+                <div className="flex items-baseline gap-2">
+                  <div className="text-4xl font-bold">$190</div>
+                  <div className="text-lg text-muted-foreground line-through">$240</div>
+                </div>
+                <ul className="grid gap-2 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="size-4" /> Todo lo del plan mensual
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="size-4" /> 2 meses gratis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="size-4" /> Auditoría avanzada
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full" asChild>
+                  <Link href="/register">Obtener Oferta</Link>
+                </Button>
+              </CardFooter>
+            </Card>
           </div>
         </section>
 
@@ -77,73 +128,6 @@ export default function HomePage() {
                 <CardTitle>Caja</CardTitle>
                 <CardDescription>Controla tus ingresos y egresos automáticamente</CardDescription>
               </CardHeader>
-            </Card>
-          </div>
-        </section>
-
-        <section className="container py-12 md:py-24">
-          <div className="mx-auto flex max-w-[58rem] flex-col items-center justify-center gap-4 text-center">
-            <h2 className="text-3xl font-bold leading-[1.1] sm:text-3xl md:text-6xl">Planes Simples</h2>
-            <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-              Elige el plan que mejor se adapte a tu negocio. Sin costos ocultos.
-            </p>
-          </div>
-          <div className="grid gap-8 py-8 md:grid-cols-2 lg:gap-12 max-w-[64rem] mx-auto">
-            <Card className="flex flex-col">
-              <CardHeader>
-                <CardTitle className="text-2xl">Mensual</CardTitle>
-                <CardDescription>Ideal para comenzar</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 flex-1">
-                <div className="text-4xl font-bold">$20</div>
-                <ul className="grid gap-2 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="size-4" /> Acceso completo al sistema
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="size-4" /> Usuarios ilimitados
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="size-4" /> Soporte prioritario
-                  </li>
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full" asChild>
-                  <Link href="/register">Comenzar Ahora</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-            <Card className="flex flex-col border-primary relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold rounded-bl-lg">
-                AHORRA 20%
-              </div>
-              <CardHeader>
-                <CardTitle className="text-2xl">Anual</CardTitle>
-                <CardDescription>Para negocios establecidos</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 flex-1">
-                <div className="flex items-baseline gap-2">
-                  <div className="text-4xl font-bold">$190</div>
-                  <div className="text-lg text-muted-foreground line-through">$240</div>
-                </div>
-                <ul className="grid gap-2 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="size-4" /> Todo lo del plan mensual
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="size-4" /> 2 meses gratis
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="size-4" /> Auditoría avanzada
-                  </li>
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full" asChild>
-                  <Link href="/register">Obtener Oferta</Link>
-                </Button>
-              </CardFooter>
             </Card>
           </div>
         </section>
