@@ -10,8 +10,16 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return new NextResponse("Unauthorized", { status: 401 })
+    }
+
+    const user = await db.user.findUnique({
+      where: { email: session.user.email },
+    })
+
+    if (!user) {
+      return new NextResponse("User not found", { status: 404 })
     }
 
     const body = await req.json()
@@ -27,7 +35,7 @@ export async function POST(req: Request) {
     // Create pending subscription
     const subscription = await db.subscription.create({
       data: {
-        userId: session.user.id,
+        userId: user.id, // Use user.id instead of session.user.id
         plan,
         status: "pending",
         paymentMethod: "mercadopago",

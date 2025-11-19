@@ -5,9 +5,13 @@ const MP_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN
 
 export async function POST(req: Request) {
   try {
+    const body = await req.json().catch(() => ({}))
     const url = new URL(req.url)
-    const topic = url.searchParams.get("topic") || url.searchParams.get("type")
-    const id = url.searchParams.get("id") || url.searchParams.get("data.id")
+    
+    const topic = body.type || url.searchParams.get("topic") || url.searchParams.get("type")
+    const id = body.data?.id || url.searchParams.get("id") || url.searchParams.get("data.id")
+
+    console.log("[v0] MP Webhook received:", { topic, id })
 
     if (topic !== "payment") {
       return new NextResponse("OK", { status: 200 })
@@ -32,6 +36,8 @@ export async function POST(req: Request) {
 
     if (payment.status === "approved") {
       const subscriptionId = payment.external_reference
+
+      console.log("[v0] Payment approved for subscription:", subscriptionId)
 
       if (subscriptionId) {
         const subscription = await db.subscription.findUnique({
@@ -60,10 +66,12 @@ export async function POST(req: Request) {
               data: {
                 userId: subscription.userId,
                 action: "PAYMENT_APPROVED",
-                details: `Payment approved for subscription ${subscriptionId}`,
+                details: `Pago aprobado para plan ${subscription.plan === "MONTHLY" ? "Mensual" : "Anual"} - $${subscription.plan === "MONTHLY" ? "20" : "190"}`,
               },
             }),
           ])
+
+          console.log("[v0] Subscription activated successfully")
         }
       }
     }
