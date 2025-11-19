@@ -142,6 +142,12 @@ export async function GET(request: NextRequest) {
         break
 
       case "cash":
+        console.log("[v0] Querying cash movements with filter:", {
+          companyId,
+          deletedAt: null,
+          ...dateFilter,
+        })
+
         const movements = await db.cashMovement.findMany({
           where: {
             companyId,
@@ -153,9 +159,11 @@ export async function GET(request: NextRequest) {
           },
         })
 
+        console.log("[v0] Cash movements found:", movements.length)
+
         data = movements.map((movement) => ({
           date: new Date(movement.createdAt).toLocaleString("es-AR"),
-          type: movement.type === "ingreso" ? "Ingreso" : "Egreso",
+          type: movement.type === "in" ? "Ingreso" : "Egreso",
           amount: `$${movement.amount.toFixed(2)}`,
           note: movement.note || "Sin nota",
         }))
