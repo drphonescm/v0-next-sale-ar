@@ -62,7 +62,7 @@ Para que los pagos se confirmen automáticamente:
 \`\`\`
 [Usuario en /dashboard/subscription]
         ↓
-Selecciona "Mensual ($20)" o "Anual ($190)"
+Selecciona "Mensual ($29.000)" o "Anual ($275.000)"
         ↓
 Se crea una Suscripción con status "pending" en la BD
         ↓

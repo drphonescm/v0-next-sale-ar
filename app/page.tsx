@@ -44,7 +44,7 @@ export default function HomePage() {
                 <CardDescription>Ideal para comenzar</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 flex-1">
-                <div className="text-4xl font-bold">$20</div>
+                <div className="text-4xl font-bold">$29.000</div>
                 <ul className="grid gap-2 text-sm text-muted-foreground">
                   <li className="flex items-center gap-2">
                     <CheckIcon className="size-4" /> Acceso completo al sistema
@@ -73,8 +73,8 @@ export default function HomePage() {
               </CardHeader>
               <CardContent className="grid gap-4 flex-1">
                 <div className="flex items-baseline gap-2">
-                  <div className="text-4xl font-bold">$190</div>
-                  <div className="text-lg text-muted-foreground line-through">$240</div>
+                  <div className="text-4xl font-bold">$275.000</div>
+                  <div className="text-lg text-muted-foreground line-through">$348.000</div>
                 </div>
                 <ul className="grid gap-2 text-sm text-muted-foreground">
                   <li className="flex items-center gap-2">

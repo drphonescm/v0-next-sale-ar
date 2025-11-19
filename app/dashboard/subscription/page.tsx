@@ -135,7 +135,7 @@ export default function SubscriptionPage() {
           <div>
             <div className="text-sm font-medium text-muted-foreground">Deuda</div>
             <div className={`text-lg font-bold ${isBlocked || isGrace ? "text-red-500" : "text-green-500"}`}>
-              {isBlocked || isGrace ? "$20.00" : "$0.00"}
+              {isBlocked || isGrace ? "$29.000" : "$0"}
             </div>
           </div>
         </CardContent>
@@ -147,7 +147,7 @@ export default function SubscriptionPage() {
           <div className="space-y-2">
             <h3 className="text-xl font-semibold">Plan Mensual</h3>
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-bold">$20</span>
+              <span className="text-4xl font-bold">$29.000</span>
               <span className="text-muted-foreground">/mes</span>
             </div>
             <p className="text-sm text-muted-foreground">Ideal para comenzar</p>
@@ -175,11 +175,11 @@ export default function SubscriptionPage() {
           <div className="space-y-2">
             <h3 className="text-xl font-semibold">Plan Anual</h3>
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-bold">$190</span>
+              <span className="text-4xl font-bold">$275.000</span>
               <span className="text-muted-foreground">/año</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Antes <span className="line-through">$240</span> al año
+              Antes <span className="line-through">$348.000</span> al año
             </p>
           </div>
           <ul className="space-y-2 text-sm">
@@ -244,7 +244,7 @@ export default function SubscriptionPage() {
                   <TableRow key={log.id}>
                     <TableCell>{new Date(log.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>{log.details}</TableCell>
-                    <TableCell>$20.00</TableCell> {/* Mock amount for now */}
+                    <TableCell>$29.000</TableCell>
                   </TableRow>
                 ))
               ) : (

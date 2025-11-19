@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       return new NextResponse("Invalid plan", { status: 400 })
     }
 
-    const price = plan === "MONTHLY" ? 20 : 190
+    const price = plan === "MONTHLY" ? 29000 : 275000
     const title = `Suscripción ${plan === "MONTHLY" ? "Mensual" : "Anual"} - Next Sale ARG`
 
     // Create pending subscription
