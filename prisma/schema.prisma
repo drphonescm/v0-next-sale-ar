@@ -340,3 +340,17 @@ model DeliveryNoteItem {
   quantity    Int
   price       Float
 }
+
+// --- ChangeLog ---
+model ChangeLog {
+  id          String   @id @default(cuid())
+  action      String
+  module      String
+  tableName   String
+  recordId    String
+  description String
+  before      String?
+  after       String?
+  userId      String
+  createdAt   DateTime @default(now())
+}
