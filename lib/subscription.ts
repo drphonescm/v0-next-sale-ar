@@ -2,13 +2,18 @@ import { db } from "@/lib/db"
 
 export async function checkSubscriptionStatus(userId: string) {
   try {
+    if (!userId) {
+      console.log("[v0] No userId provided, blocking user")
+      return { status: "blocked", subscription: null }
+    }
+
     const subscription = await db.subscription.findFirst({
       where: { userId },
       orderBy: { createdAt: "desc" },
     })
 
     if (!subscription) {
-      console.log("[v0] No subscription found for user:", userId)
+      console.log("[v0] No subscription found for user:", userId, "- BLOCKING")
       return { status: "blocked", subscription: null }
     }
 
@@ -16,7 +21,7 @@ export async function checkSubscriptionStatus(userId: string) {
     const endDate = subscription.endDate ? new Date(subscription.endDate) : null
 
     if (subscription.status === "pending" || subscription.status === "blocked") {
-      console.log("[v0] Subscription is pending or blocked:", subscription.status)
+      console.log("[v0] Subscription is pending or blocked:", subscription.status, "- BLOCKING")
       return { status: "blocked", subscription }
     }
 
