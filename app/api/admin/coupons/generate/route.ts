@@ -54,6 +54,7 @@ export async function POST(req: Request) {
       return new NextResponse("Failed to generate unique code. Please try again.", { status: 500 })
     }
 
+    console.log("[v0] Creating coupon in database...")
     const coupon = await db.coupon.create({
       data: {
         code,
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
         status: "active",
       },
     })
-    console.log("[v0] Coupon created:", coupon.id)
+    console.log("[v0] Coupon created successfully:", coupon.id)
 
     try {
       const user = await db.user.findUnique({
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
       })
 
       if (user) {
+        console.log("[v0] Creating audit log...")
         await db.auditLog.create({
           data: {
             userId: user.id,
@@ -76,7 +78,7 @@ export async function POST(req: Request) {
             details: `Auto-generated coupon ${code} (${type})`,
           },
         })
-        console.log("[v0] Audit log created")
+        console.log("[v0] Audit log created successfully")
       }
     } catch (auditError) {
       console.error("[v0] Failed to create audit log (non-critical):", auditError)
@@ -84,7 +86,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json(coupon)
   } catch (error) {
-    console.error("[COUPON_GENERATE]", error)
-    return new NextResponse("Internal Error", { status: 500 })
+    console.error("[v0] COUPON_GENERATE ERROR:", error)
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    console.error("[v0] Error details:", errorMessage)
+    return new NextResponse(`Internal Error: ${errorMessage}`, { status: 500 })
   }
 }
