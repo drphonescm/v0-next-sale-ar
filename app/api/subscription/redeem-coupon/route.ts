@@ -26,20 +26,18 @@ export async function POST(req: Request) {
       return new NextResponse("Missing code", { status: 400 })
     }
 
-    // 1. Validate Coupon
     const coupon = await db.coupon.findUnique({
-      where: { code },
+      where: { code: code.toUpperCase().trim() },
     })
 
     if (!coupon) {
-      return new NextResponse("Invalid coupon code", { status: 400 })
+      return new NextResponse("Cupón inválido", { status: 400 })
     }
 
     if (coupon.status === "used") {
-      return new NextResponse("This coupon has already been used", { status: 400 })
+      return new NextResponse("Este cupón ya ha sido utilizado", { status: 400 })
     }
 
-    // 2. Calculate dates
     const startDate = new Date()
     const endDate = new Date()
     if (coupon.type === "MONTHLY") {
@@ -58,9 +56,7 @@ export async function POST(req: Request) {
       },
     })
 
-    // 3. Transaction: Create Subscription, Update Coupon, Log
     const [subscription] = await db.$transaction([
-      // Create Subscription
       db.subscription.create({
         data: {
           userId: user.id,
@@ -78,18 +74,18 @@ export async function POST(req: Request) {
           usedBy: user.id,
         },
       }),
-      // Audit Log
       db.auditLog.create({
         data: {
           userId: user.id,
           action: "REDEEM_COUPON",
-          details: `Redeemed coupon ${code} for ${coupon.type} plan (expires ${endDate.toLocaleDateString()})`,
+          details: `Canjeó cupón ${code} para plan ${coupon.type} (vence ${endDate.toLocaleDateString()})`,
         },
       }),
     ])
 
     return NextResponse.json({ 
       success: true,
+      message: "Suscripción activada exitosamente",
       subscription: {
         plan: subscription.plan,
         status: subscription.status,
@@ -99,6 +95,6 @@ export async function POST(req: Request) {
     })
   } catch (error) {
     console.error("[COUPON_REDEEM]", error)
-    return new NextResponse("Internal Error", { status: 500 })
+    return new NextResponse("Error interno del servidor", { status: 500 })
   }
 }
