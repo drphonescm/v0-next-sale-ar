@@ -7,8 +7,16 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return new NextResponse("Unauthorized", { status: 401 })
+    }
+
+    const user = await db.user.findUnique({
+      where: { email: session.user.email },
+    })
+
+    if (!user) {
+      return new NextResponse("User not found", { status: 404 })
     }
 
     const body = await req.json()
@@ -40,12 +48,22 @@ export async function POST(req: Request) {
       endDate.setFullYear(endDate.getFullYear() + 1)
     }
 
+    await db.subscription.updateMany({
+      where: {
+        userId: user.id,
+        status: { in: ["active", "grace"] },
+      },
+      data: {
+        status: "blocked",
+      },
+    })
+
     // 3. Transaction: Create Subscription, Update Coupon, Log
-    await db.$transaction([
+    const [subscription] = await db.$transaction([
       // Create Subscription
       db.subscription.create({
         data: {
-          userId: session.user.id,
+          userId: user.id,
           plan: coupon.type,
           status: "active",
           startDate,
@@ -57,20 +75,28 @@ export async function POST(req: Request) {
         where: { id: coupon.id },
         data: {
           status: "used",
-          usedBy: session.user.id,
+          usedBy: user.id,
         },
       }),
       // Audit Log
       db.auditLog.create({
         data: {
-          userId: session.user.id,
+          userId: user.id,
           action: "REDEEM_COUPON",
-          details: `Redeemed coupon ${code} for ${coupon.type} plan`,
+          details: `Redeemed coupon ${code} for ${coupon.type} plan (expires ${endDate.toLocaleDateString()})`,
         },
       }),
     ])
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ 
+      success: true,
+      subscription: {
+        plan: subscription.plan,
+        status: subscription.status,
+        startDate: subscription.startDate,
+        endDate: subscription.endDate,
+      }
+    })
   } catch (error) {
     console.error("[COUPON_REDEEM]", error)
     return new NextResponse("Internal Error", { status: 500 })

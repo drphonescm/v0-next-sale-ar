@@ -57,14 +57,19 @@ export async function POST(req: Request) {
       },
     })
 
-    // Log action
-    await db.auditLog.create({
-      data: {
-        userId: session.user.id,
-        action: "GENERATE_COUPON",
-        details: `Auto-generated coupon ${code} (${type})`,
-      },
+    const user = await db.user.findUnique({
+      where: { email: session.user.email! },
     })
+
+    if (user) {
+      await db.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "GENERATE_COUPON",
+          details: `Auto-generated coupon ${code} (${type})`,
+        },
+      })
+    }
 
     return NextResponse.json(coupon)
   } catch (error) {
