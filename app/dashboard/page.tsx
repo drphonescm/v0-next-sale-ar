@@ -4,7 +4,7 @@ import useSWR from "swr"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { PackageIcon, UsersIcon, ShoppingCartIcon, WalletIcon, AlertTriangleIcon } from "lucide-react"
+import { PackageIcon, UsersIcon, ShoppingCartIcon, AlertTriangleIcon } from 'lucide-react'
 import { useTranslation } from "@/hooks/use-translation"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
@@ -50,7 +50,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-3">
       {/* Stats Cards */}
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-1">
             <CardTitle className="text-sm font-medium">{t("totalProducts")}</CardTitle>
@@ -83,17 +83,6 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">{t("completedTransactions")}</p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-1">
-            <CardTitle className="text-sm font-medium">{t("cashBalance")}</CardTitle>
-            <WalletIcon className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="pt-1">
-            <div className="text-xl font-bold">{formatCurrency(stats.cashBalance)}</div>
-            <p className="text-xs text-muted-foreground">{t("currentCashFlow")}</p>
-          </CardContent>
-        </Card>
       </div>
 
       <Card>
@@ -120,17 +109,6 @@ export default function DashboardPage() {
               </LineChart>
             </ResponsiveContainer>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Revenue Card */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">{t("totalRevenue")}</CardTitle>
-          <CardDescription className="text-xs">{t("totalRevenueFromSales")}</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2">
-          <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
         </CardContent>
       </Card>
 

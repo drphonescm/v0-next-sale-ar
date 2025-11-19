@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCompanyId } from "@/lib/session"
+import { startOfWeek, endOfWeek, eachDayOfInterval, format } from "date-fns"
+import { es } from "date-fns/locale"
 
 export async function GET() {
   try {
@@ -10,16 +12,17 @@ export async function GET() {
       return NextResponse.json([])
     }
 
-    // Get sales from the last 7 days
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    const now = new Date()
+    const start = startOfWeek(now, { weekStartsOn: 1 }) // 1 = Monday
+    const end = endOfWeek(now, { weekStartsOn: 1 })
 
     const sales = await db.sale.findMany({
       where: {
         companyId,
         status: "completed",
         createdAt: {
-          gte: sevenDaysAgo,
+          gte: start,
+          lte: end,
         },
       },
       select: {
@@ -31,23 +34,22 @@ export async function GET() {
       },
     })
 
-    // Group sales by day
     const salesByDay = new Map<string, number>()
-    const days = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+    const daysInterval = eachDayOfInterval({ start, end })
 
-    // Initialize last 7 days with 0
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      const dayName = days[date.getDay()]
-      salesByDay.set(dayName, 0)
-    }
+    daysInterval.forEach((day) => {
+      // Format day name (e.g., "Lun", "Mar")
+      const dayName = format(day, "EEE", { locale: es })
+      // Capitalize first letter
+      const formattedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1)
+      salesByDay.set(formattedDayName, 0)
+    })
 
-    // Aggregate sales by day
     sales.forEach((sale) => {
-      const dayName = days[sale.createdAt.getDay()]
-      const currentTotal = salesByDay.get(dayName) || 0
-      salesByDay.set(dayName, currentTotal + sale.total)
+      const dayName = format(sale.createdAt, "EEE", { locale: es })
+      const formattedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1)
+      const currentTotal = salesByDay.get(formattedDayName) || 0
+      salesByDay.set(formattedDayName, currentTotal + sale.total)
     })
 
     // Convert to array format for chart
