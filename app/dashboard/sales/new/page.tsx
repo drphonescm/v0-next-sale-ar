@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeftIcon, SearchIcon, TrashIcon, PrinterIcon, FileTextIcon, PlusIcon } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
@@ -912,425 +911,393 @@ export default function NewSalePage() {
     )
   }
 
+  // Redesigned layout to look like an invoice
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-muted/30 p-6">
       <div className="max-w-5xl mx-auto space-y-4">
-        {/* Header - reduced padding */}
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/sales">
-            <Button variant="ghost" size="icon">
-              <ArrowLeftIcon />
-            </Button>
-          </Link>
-          <div className="flex-1">
-            <h2 className="text-xl font-bold">{t("newSale")}</h2>
-            <p className="text-xs text-muted-foreground">{formatDateTime(saleDate)}</p>
-          </div>
-        </div>
+        {/* Back button */}
+        <Link href="/dashboard/sales">
+          <Button variant="ghost" size="sm">
+            <ArrowLeftIcon className="mr-2 h-4 w-4" />
+            Volver a Ventas
+          </Button>
+        </Link>
 
-        {/* Customer section - reduced padding */}
-        <Card>
-          <div className="p-4 space-y-3">
-            <h3 className="font-semibold text-base">{t("customer")}</h3>
+        {/* Invoice-style card */}
+        <Card className="shadow-lg">
+          <CardContent className="p-0">
+            {/* Header with company info and document type */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <h1 className="text-2xl font-bold">{companySettings?.name || "Next Sale AR"}</h1>
+                  <p className="text-sm text-blue-100">Sistema de Gestión de Ventas</p>
+                  {companySettings?.cuit && <p className="text-sm text-blue-100">CUIT: {companySettings.cuit}</p>}
+                </div>
 
-            <div className="relative">
-              <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t("searchCustomers")}
-                value={customerSearch}
-                onChange={(e) => setCustomerSearch(e.target.value)}
-                className="pl-9 h-9"
-              />
-            </div>
-
-            {customerSearch && filteredCustomers && filteredCustomers.length > 0 && (
-              <div className="bg-muted rounded-lg border max-h-40 overflow-y-auto">
-                {filteredCustomers.map((customer: any) => (
-                  <button
-                    key={customer.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCustomer(customer)
-                      setCustomerSearch("")
-                    }}
-                    className="w-full text-left p-2 hover:bg-accent transition-colors border-b last:border-0"
-                  >
-                    <p className="font-medium text-sm">{customer.name}</p>
-                    <p className="text-xs text-muted-foreground">{customer.email || t("noEmail")}</p>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {customerSearch && filteredCustomers && filteredCustomers.length === 0 && (
-              <div className="bg-muted p-3 rounded-lg border text-center">
-                <p className="text-xs text-muted-foreground mb-2">{t("noCustomersFound")}</p>
-                <Link href="/dashboard/customers/new">
-                  <Button type="button" size="sm" variant="outline" className="h-7 text-xs bg-transparent">
-                    <PlusIcon className="h-3 w-3 mr-1" />
-                    {t("createNewCustomer")}
-                  </Button>
-                </Link>
-              </div>
-            )}
-
-            {selectedCustomer ? (
-              <div className="bg-muted p-3 rounded-lg border space-y-1">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium text-sm">{selectedCustomer.name}</p>
-                    <p className="text-xs text-muted-foreground">{selectedCustomer.email || t("noEmail")}</p>
-                    <p className="text-xs text-muted-foreground">{selectedCustomer.phone || t("noPhone")}</p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedCustomer(null)}
-                    className="text-destructive hover:text-destructive h-7"
-                  >
-                    {t("remove")}
-                  </Button>
+                {/* Document type badge */}
+                <div className="bg-white text-blue-900 px-6 py-4 rounded-lg shadow-md min-w-[200px]">
+                  <div className="text-xs font-semibold mb-1">TIPO DE COMPROBANTE</div>
+                  <Select value={documentType} onValueChange={setDocumentType}>
+                    <SelectTrigger className="h-10 border-0 bg-transparent p-0 font-bold text-base">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="factura-c">Factura C</SelectItem>
+                      <SelectItem value="recibo-pago">Recibo de Pago</SelectItem>
+                      <SelectItem value="devolucion-pago">Devolución de Pago</SelectItem>
+                      <SelectItem value="presupuesto">Presupuesto</SelectItem>
+                      <SelectItem value="pedido">Pedido</SelectItem>
+                      <SelectItem value="remito">Remito</SelectItem>
+                      <SelectItem value="remito-devolucion">Remito de Devolución</SelectItem>
+                      <SelectItem value="nota-credito-c">Nota de Crédito C</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="text-xs mt-2 text-blue-700">Nº {documentNumber}</div>
                 </div>
               </div>
-            ) : (
-              <div className="bg-muted p-3 rounded-lg border text-center text-sm text-muted-foreground">
-                {t("noCustomerSelected")}
-              </div>
-            )}
-          </div>
-        </Card>
 
-        {/* Products - moved above basic data */}
-        <Card>
-          <div className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base">{t("productsOfSale")}</h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowManualEntry(!showManualEntry)}
-                className="h-8 text-xs"
-              >
-                <PlusIcon className="size-3 mr-1" />
-                {t("addManualProduct")}
-              </Button>
+              {/* Date and condition */}
+              <div className="mt-4 flex gap-6 text-sm text-blue-100">
+                <div>
+                  <span className="font-semibold">Fecha:</span> {formatDateTime(saleDate)}
+                </div>
+                <div>
+                  <span className="font-semibold">Condición:</span>
+                  <Select value={saleCondition} onValueChange={setSaleCondition}>
+                    <SelectTrigger className="inline-flex ml-2 h-7 w-auto border-blue-400 bg-blue-700 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="contado">Contado</SelectItem>
+                      <SelectItem value="cuenta-corriente">Cuenta Corriente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
-            {showManualEntry && (
-              <div className="bg-muted p-3 rounded-lg border space-y-2">
-                <h4 className="font-medium text-xs">{t("manualProductEntry")}</h4>
-                <div className="grid grid-cols-3 gap-2">
-                  <Input
-                    placeholder={t("productName")}
-                    value={manualProduct.name}
-                    onChange={(e) => setManualProduct({ ...manualProduct, name: e.target.value })}
-                    className="h-8 text-sm"
-                  />
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder={t("price")}
-                    value={manualProduct.price}
-                    onChange={(e) => setManualProduct({ ...manualProduct, price: e.target.value })}
-                    className="h-8 text-sm"
-                  />
-                  <Input
-                    type="number"
-                    placeholder={t("quantity")}
-                    value={manualProduct.quantity}
-                    onChange={(e) => setManualProduct({ ...manualProduct, quantity: e.target.value })}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button type="button" size="sm" onClick={addManualProduct} className="h-7 text-xs">
-                    {t("add")}
-                  </Button>
+            {/* Customer section - invoice style */}
+            <div className="p-6 border-b bg-white">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-lg">Datos del Cliente</h3>
+                {!selectedCustomer && (
                   <Button
                     type="button"
-                    size="sm"
                     variant="outline"
-                    onClick={() => setShowManualEntry(false)}
-                    className="h-7 text-xs"
+                    size="sm"
+                    onClick={() => document.getElementById("customer-search")?.focus()}
                   >
-                    {t("cancel")}
+                    <SearchIcon className="h-4 w-4 mr-2" />
+                    Buscar Cliente
                   </Button>
-                </div>
+                )}
               </div>
-            )}
 
-            {/* Product search */}
-            <div className="relative">
-              <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t("searchProducts")}
-                value={productSearch}
-                onChange={(e) => setProductSearch(e.target.value)}
-                className="pl-9 h-9"
-              />
+              {selectedCustomer ? (
+                <div className="bg-muted/50 p-4 rounded-lg border-2 border-blue-200">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="font-semibold text-lg">{selectedCustomer.name}</div>
+                      <div className="text-sm text-muted-foreground space-y-0.5">
+                        {selectedCustomer.email && <div>Email: {selectedCustomer.email}</div>}
+                        {selectedCustomer.phone && <div>Teléfono: {selectedCustomer.phone}</div>}
+                        <div>Condición IVA: Consumidor Final</div>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedCustomer(null)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      Cambiar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="relative">
+                    <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="customer-search"
+                      placeholder="Buscar cliente por nombre o email..."
+                      value={customerSearch}
+                      onChange={(e) => setCustomerSearch(e.target.value)}
+                      className="pl-10 h-11"
+                    />
+                  </div>
+
+                  {customerSearch && filteredCustomers && filteredCustomers.length > 0 && (
+                    <div className="bg-white border rounded-lg shadow-md max-h-48 overflow-y-auto">
+                      {filteredCustomers.map((customer: any) => (
+                        <button
+                          key={customer.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCustomer(customer)
+                            setCustomerSearch("")
+                          }}
+                          className="w-full text-left p-3 hover:bg-blue-50 transition-colors border-b last:border-0"
+                        >
+                          <p className="font-medium">{customer.name}</p>
+                          <p className="text-sm text-muted-foreground">{customer.email || "Sin email"}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {!selectedCustomer && !customerSearch && (
+                    <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm text-yellow-800">
+                      Si no selecciona un cliente, se facturará como "Consumidor Final"
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Product search results */}
-            {productSearch && filteredProducts && filteredProducts.length > 0 && (
-              <div className="bg-muted rounded-lg border max-h-40 overflow-y-auto">
-                {filteredProducts.map((product: any) => (
-                  <button
-                    key={product.id}
-                    type="button"
-                    onClick={() => addProduct(product)}
-                    className="w-full text-left p-2 hover:bg-accent flex justify-between items-center transition-colors border-b last:border-0"
-                  >
-                    <div>
-                      <p className="font-medium text-sm">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {product.sku} - Stock: {product.stock}
-                      </p>
-                    </div>
-                    <p className="font-semibold text-sm">{formatCurrency(product.price)}</p>
-                  </button>
-                ))}
+            {/* Products section - invoice table style */}
+            <div className="p-6 bg-white">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-lg">Detalle de Productos</h3>
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowManualEntry(!showManualEntry)}>
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Producto Manual
+                </Button>
               </div>
-            )}
 
-            {/* Products table */}
-            <div className="rounded-lg border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="h-9">
-                    <TableHead className="text-xs">Código</TableHead>
-                    <TableHead className="text-xs">Cant.</TableHead>
-                    <TableHead className="text-xs">Producto</TableHead>
-                    <TableHead className="text-xs">Precio</TableHead>
-                    <TableHead className="text-xs">Bonif.</TableHead>
-                    <TableHead className="text-xs">Importe</TableHead>
-                    <TableHead className="text-xs"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-6 text-sm text-muted-foreground">
-                        {t("noItemsAdded")}
-                      </TableCell>
+              {showManualEntry && (
+                <div className="bg-muted p-4 rounded-lg border mb-4 space-y-3">
+                  <h4 className="font-medium text-sm">Agregar Producto Manual</h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Input
+                      placeholder="Nombre del producto"
+                      value={manualProduct.name}
+                      onChange={(e) => setManualProduct({ ...manualProduct, name: e.target.value })}
+                    />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="Precio"
+                      value={manualProduct.price}
+                      onChange={(e) => setManualProduct({ ...manualProduct, price: e.target.value })}
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Cantidad"
+                      value={manualProduct.quantity}
+                      onChange={(e) => setManualProduct({ ...manualProduct, quantity: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="button" size="sm" onClick={addManualProduct}>
+                      Agregar
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => setShowManualEntry(false)}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Product search */}
+              <div className="relative mb-4">
+                <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar producto por nombre o código..."
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  className="pl-10 h-11"
+                />
+              </div>
+
+              {productSearch && filteredProducts && filteredProducts.length > 0 && (
+                <div className="bg-white border rounded-lg shadow-md max-h-48 overflow-y-auto mb-4">
+                  {filteredProducts.map((product: any) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => addProduct(product)}
+                      className="w-full text-left p-3 hover:bg-blue-50 flex justify-between items-center transition-colors border-b last:border-0"
+                    >
+                      <div>
+                        <p className="font-medium">{product.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {product.sku} - Stock: {product.stock}
+                        </p>
+                      </div>
+                      <p className="font-semibold text-lg text-blue-600">{formatCurrency(product.price)}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Invoice-style table */}
+              <div className="border-2 rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-blue-600 hover:bg-blue-600">
+                      <TableHead className="text-white font-bold">Código</TableHead>
+                      <TableHead className="text-white font-bold">Producto</TableHead>
+                      <TableHead className="text-white font-bold text-center">Cant.</TableHead>
+                      <TableHead className="text-white font-bold text-right">Precio Unit.</TableHead>
+                      <TableHead className="text-white font-bold text-center">Bonif. %</TableHead>
+                      <TableHead className="text-white font-bold text-right">Importe</TableHead>
+                      <TableHead className="text-white font-bold text-center">Acciones</TableHead>
                     </TableRow>
-                  ) : (
-                    items.map((item, index) => (
-                      <TableRow key={index} className="h-12">
-                        <TableCell className="text-sm">{item.productCode || "-"}</TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            onChange={(e) => updateItem(index, "quantity", Number.parseInt(e.target.value))}
-                            className="w-16 h-8 text-sm"
-                          />
-                        </TableCell>
-                        <TableCell className="text-sm">{item.productName}</TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={item.price}
-                            onChange={(e) => updateItem(index, "price", Number.parseFloat(e.target.value))}
-                            className="w-24 h-8 text-sm"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={item.discount}
-                            onChange={(e) => updateItem(index, "discount", Number.parseFloat(e.target.value))}
-                            className="w-16 h-8 text-sm"
-                          />
-                        </TableCell>
-                        <TableCell className="font-semibold text-sm">
-                          {formatCurrency(calculateItemTotal(item))}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeItem(index)}
-                            className="text-destructive hover:text-destructive h-8 w-8"
-                          >
-                            <TrashIcon className="h-3 w-3" />
-                          </Button>
+                  </TableHeader>
+                  <TableBody>
+                    {items.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                          <div className="flex flex-col items-center gap-2">
+                            <SearchIcon className="h-12 w-12 text-muted-foreground/50" />
+                            <p>No se han agregado productos</p>
+                            <p className="text-sm">Busque productos arriba para agregarlos a la factura</p>
+                          </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      items.map((item, index) => (
+                        <TableRow key={index} className="hover:bg-blue-50/50">
+                          <TableCell className="font-mono">{item.productCode || "-"}</TableCell>
+                          <TableCell className="font-medium">{item.productName}</TableCell>
+                          <TableCell className="text-center">
+                            <Input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => updateItem(index, "quantity", Number.parseInt(e.target.value))}
+                              className="w-20 text-center mx-auto"
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={item.price}
+                              onChange={(e) => updateItem(index, "price", Number.parseFloat(e.target.value))}
+                              className="w-28 text-right ml-auto"
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={item.discount}
+                              onChange={(e) => updateItem(index, "discount", Number.parseFloat(e.target.value))}
+                              className="w-20 text-center mx-auto"
+                            />
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-lg text-green-600">
+                            {formatCurrency(calculateItemTotal(item))}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeItem(index)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Totals section - invoice style */}
+              {items.length > 0 && (
+                <div className="mt-6 flex justify-end">
+                  <div className="w-80 space-y-3">
+                    <div className="flex justify-between items-center text-lg">
+                      <span className="text-muted-foreground">Subtotal:</span>
+                      <span className="font-semibold">{formatCurrency(calculateSubtotal())}</span>
+                    </div>
+                    {calculateTotalDiscount() > 0 && (
+                      <div className="flex justify-between items-center text-lg text-red-600">
+                        <span>Descuento:</span>
+                        <span className="font-semibold">-{formatCurrency(calculateTotalDiscount())}</span>
+                      </div>
+                    )}
+                    <div className="border-t-2 border-blue-600 pt-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-2xl font-bold">TOTAL:</span>
+                        <span className="text-3xl font-bold text-blue-600">{formatCurrency(calculateTotal())}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Totals */}
-            {items.length > 0 && (
-              <div className="bg-muted p-3 rounded-lg border space-y-1.5">
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Subtotal:</span>
-                  <span>{formatCurrency(calculateSubtotal())}</span>
+            {/* Payment and observations section */}
+            <div className="p-6 bg-muted/30 border-t space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold">Forma de Pago</Label>
+                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="efectivo">Efectivo</SelectItem>
+                      <SelectItem value="tarjeta-debito">Tarjeta de Débito</SelectItem>
+                      <SelectItem value="tarjeta-credito">Tarjeta de Crédito</SelectItem>
+                      <SelectItem value="transferencia">Transferencia</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Descuento ({((calculateTotalDiscount() / calculateSubtotal()) * 100).toFixed(2)}%):</span>
-                  <span>{formatCurrency(calculateTotalDiscount())}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold pt-1.5 border-t">
-                  <span>Total:</span>
-                  <span className="text-green-600 dark:text-green-400">{formatCurrency(calculateTotal())}</span>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold">Caja</Label>
+                  <Select value={cashRegister} onValueChange={setCashRegister}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="caja-principal">Caja Principal</SelectItem>
+                      <SelectItem value="caja-secundaria">Caja Secundaria</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            )}
-          </div>
-        </Card>
 
-        {/* Basic data - moved below products */}
-        <Card>
-          <Accordion type="single" collapsible defaultValue="basic-data">
-            <AccordionItem value="basic-data">
-              <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                <span className="font-semibold text-sm">{t("basicData")}</span>
-              </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4">
-                <div className="grid gap-3">
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">{t("documentType")}</Label>
-                    <Select value={documentType} onValueChange={setDocumentType}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="factura-c">Factura C</SelectItem>
-                        <SelectItem value="recibo-pago">Recibo de pago</SelectItem>
-                        <SelectItem value="devolucion-pago">Devolución de pago</SelectItem>
-                        <SelectItem value="presupuesto">Presupuesto</SelectItem>
-                        <SelectItem value="pedido">Pedido</SelectItem>
-                        <SelectItem value="remito">Remito</SelectItem>
-                        <SelectItem value="remito-devolucion">Remito de devolución</SelectItem>
-                        <SelectItem value="nota-credito-c">Nota de Crédito C</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">{t("documentNumber")}</Label>
-                    <Input value={documentNumber} readOnly className="h-9 text-sm" />
-                  </div>
-
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">{t("saleCondition")}</Label>
-                    <Select value={saleCondition} onValueChange={setSaleCondition}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="contado">Contado</SelectItem>
-                        <SelectItem value="cuenta-corriente">Cuenta corriente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </Card>
-
-        {/* Observations */}
-        <Card>
-          <Accordion type="single" collapsible>
-            <AccordionItem value="observations">
-              <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                <span className="font-semibold text-sm">{t("observations")}</span>
-              </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4">
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Observaciones</Label>
                 <Textarea
-                  placeholder={t("addObservations")}
+                  placeholder="Notas adicionales sobre la venta..."
                   value={observations}
                   onChange={(e) => setObservations(e.target.value)}
-                  className="min-h-[80px] text-sm"
+                  className="min-h-[80px]"
                 />
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="p-6 bg-white border-t space-y-3">
+              <Button
+                onClick={handleSubmit}
+                disabled={loading || items.length === 0}
+                className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-lg font-semibold"
+              >
+                {loading && <Spinner className="mr-2" />}
+                {loading ? "Procesando Venta..." : "Completar Venta"}
+              </Button>
+              <Link href="/dashboard/sales" className="block">
+                <Button variant="outline" className="w-full h-11 bg-transparent">
+                  Cancelar
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
         </Card>
-
-        {/* Payment receipt */}
-        <Card>
-          <Accordion type="single" collapsible>
-            <AccordionItem value="payment">
-              <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                <span className="font-semibold text-sm">{t("paymentReceipt")}</span>
-              </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4">
-                <div className="grid gap-3">
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">{t("paymentMethod")}</Label>
-                    <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="efectivo">Efectivo</SelectItem>
-                        <SelectItem value="tarjeta-debito">Tarjeta de débito</SelectItem>
-                        <SelectItem value="tarjeta-credito">Tarjeta de crédito</SelectItem>
-                        <SelectItem value="transferencia">Transferencia</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">{t("cashRegister")}</Label>
-                    <Select value={cashRegister} onValueChange={setCashRegister}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="caja-principal">Caja principal</SelectItem>
-                        <SelectItem value="caja-secundaria">Caja secundaria</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">{t("concept")}</Label>
-                    <Select value={paymentConcept} onValueChange={setPaymentConcept}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="varias">Varias</SelectItem>
-                        <SelectItem value="venta-productos">Venta de productos</SelectItem>
-                        <SelectItem value="servicios">Servicios</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </Card>
-
-        {/* Action buttons */}
-        <div className="space-y-2 pb-4">
-          <Button
-            onClick={handleSubmit}
-            disabled={loading || items.length === 0}
-            className="w-full bg-green-600 hover:bg-green-700 text-white h-10 text-sm"
-          >
-            {loading && <Spinner className="mr-2" />}
-            {t("completeSale")}
-          </Button>
-          <Link href="/dashboard/sales" className="block">
-            <Button variant="outline" className="w-full bg-transparent h-10 text-sm">
-              {t("cancel")}
-            </Button>
-          </Link>
-        </div>
       </div>
     </div>
   )
