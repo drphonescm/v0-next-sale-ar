@@ -913,7 +913,7 @@ export default function NewSalePage() {
 
   // Redesigned layout to look like an invoice
   return (
-    <div className="min-h-screen bg-muted/30 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-5xl mx-auto space-y-4">
         {/* Back button */}
         <Link href="/dashboard/sales">
@@ -926,18 +926,18 @@ export default function NewSalePage() {
         {/* Invoice-style card */}
         <Card className="shadow-lg">
           <CardContent className="p-0">
-            {/* Header with company info and document type */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+            <div className="bg-muted/50 p-6 border-b-2">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <h1 className="text-2xl font-bold">{companySettings?.name || "Next Sale AR"}</h1>
-                  <p className="text-sm text-blue-100">Sistema de Gestión de Ventas</p>
-                  {companySettings?.cuit && <p className="text-sm text-blue-100">CUIT: {companySettings.cuit}</p>}
+                  <p className="text-sm text-muted-foreground">Sistema de Gestión de Ventas</p>
+                  {companySettings?.cuit && (
+                    <p className="text-sm text-muted-foreground">CUIT: {companySettings.cuit}</p>
+                  )}
                 </div>
 
-                {/* Document type badge */}
-                <div className="bg-white text-blue-900 px-6 py-4 rounded-lg shadow-md min-w-[200px]">
-                  <div className="text-xs font-semibold mb-1">TIPO DE COMPROBANTE</div>
+                <div className="border-2 border-primary px-6 py-4 rounded-lg min-w-[200px] bg-background">
+                  <div className="text-xs font-semibold mb-1 text-muted-foreground">TIPO DE COMPROBANTE</div>
                   <Select value={documentType} onValueChange={setDocumentType}>
                     <SelectTrigger className="h-10 border-0 bg-transparent p-0 font-bold text-base">
                       <SelectValue />
@@ -953,19 +953,19 @@ export default function NewSalePage() {
                       <SelectItem value="nota-credito-c">Nota de Crédito C</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div className="text-xs mt-2 text-blue-700">Nº {documentNumber}</div>
+                  <div className="text-xs mt-2 text-muted-foreground">Nº {documentNumber}</div>
                 </div>
               </div>
 
               {/* Date and condition */}
-              <div className="mt-4 flex gap-6 text-sm text-blue-100">
+              <div className="mt-4 flex gap-6 text-sm text-muted-foreground">
                 <div>
                   <span className="font-semibold">Fecha:</span> {formatDateTime(saleDate)}
                 </div>
                 <div>
                   <span className="font-semibold">Condición:</span>
                   <Select value={saleCondition} onValueChange={setSaleCondition}>
-                    <SelectTrigger className="inline-flex ml-2 h-7 w-auto border-blue-400 bg-blue-700 text-white">
+                    <SelectTrigger className="inline-flex ml-2 h-7 w-auto border-input bg-background">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -978,7 +978,7 @@ export default function NewSalePage() {
             </div>
 
             {/* Customer section - invoice style */}
-            <div className="p-6 border-b bg-white">
+            <div className="p-6 border-b bg-card">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-lg">Datos del Cliente</h3>
                 {!selectedCustomer && (
@@ -995,7 +995,7 @@ export default function NewSalePage() {
               </div>
 
               {selectedCustomer ? (
-                <div className="bg-muted/50 p-4 rounded-lg border-2 border-blue-200">
+                <div className="bg-muted/50 p-4 rounded-lg border-2">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <div className="font-semibold text-lg">{selectedCustomer.name}</div>
@@ -1058,7 +1058,7 @@ export default function NewSalePage() {
             </div>
 
             {/* Products section - invoice table style */}
-            <div className="p-6 bg-white">
+            <div className="p-6 bg-card">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-lg">Detalle de Productos</h3>
                 <Button type="button" variant="outline" size="sm" onClick={() => setShowManualEntry(!showManualEntry)}>
@@ -1137,14 +1137,14 @@ export default function NewSalePage() {
               <div className="border-2 rounded-lg overflow-hidden">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-blue-600 hover:bg-blue-600">
-                      <TableHead className="text-white font-bold">Código</TableHead>
-                      <TableHead className="text-white font-bold">Producto</TableHead>
-                      <TableHead className="text-white font-bold text-center">Cant.</TableHead>
-                      <TableHead className="text-white font-bold text-right">Precio Unit.</TableHead>
-                      <TableHead className="text-white font-bold text-center">Bonif. %</TableHead>
-                      <TableHead className="text-white font-bold text-right">Importe</TableHead>
-                      <TableHead className="text-white font-bold text-center">Acciones</TableHead>
+                    <TableRow className="bg-muted hover:bg-muted">
+                      <TableHead className="font-bold">Código</TableHead>
+                      <TableHead className="font-bold">Producto</TableHead>
+                      <TableHead className="font-bold text-center">Cant.</TableHead>
+                      <TableHead className="font-bold text-right">Precio Unit.</TableHead>
+                      <TableHead className="font-bold text-center">Bonif. %</TableHead>
+                      <TableHead className="font-bold text-right">Importe</TableHead>
+                      <TableHead className="font-bold text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1160,7 +1160,7 @@ export default function NewSalePage() {
                       </TableRow>
                     ) : (
                       items.map((item, index) => (
-                        <TableRow key={index} className="hover:bg-blue-50/50">
+                        <TableRow key={index} className="hover:bg-muted/50">
                           <TableCell className="font-mono">{item.productCode || "-"}</TableCell>
                           <TableCell className="font-medium">{item.productName}</TableCell>
                           <TableCell className="text-center">
@@ -1191,7 +1191,7 @@ export default function NewSalePage() {
                               className="w-20 text-center mx-auto"
                             />
                           </TableCell>
-                          <TableCell className="text-right font-bold text-lg text-green-600">
+                          <TableCell className="text-right font-bold text-lg text-green-600 dark:text-green-400">
                             {formatCurrency(calculateItemTotal(item))}
                           </TableCell>
                           <TableCell className="text-center">
@@ -1221,15 +1221,15 @@ export default function NewSalePage() {
                       <span className="font-semibold">{formatCurrency(calculateSubtotal())}</span>
                     </div>
                     {calculateTotalDiscount() > 0 && (
-                      <div className="flex justify-between items-center text-lg text-red-600">
+                      <div className="flex justify-between items-center text-lg text-red-600 dark:text-red-400">
                         <span>Descuento:</span>
                         <span className="font-semibold">-{formatCurrency(calculateTotalDiscount())}</span>
                       </div>
                     )}
-                    <div className="border-t-2 border-blue-600 pt-3">
+                    <div className="border-t-2 border-primary pt-3">
                       <div className="flex justify-between items-center">
                         <span className="text-2xl font-bold">TOTAL:</span>
-                        <span className="text-3xl font-bold text-blue-600">{formatCurrency(calculateTotal())}</span>
+                        <span className="text-3xl font-bold text-primary">{formatCurrency(calculateTotal())}</span>
                       </div>
                     </div>
                   </div>
@@ -1281,11 +1281,11 @@ export default function NewSalePage() {
             </div>
 
             {/* Action buttons */}
-            <div className="p-6 bg-white border-t space-y-3">
+            <div className="p-6 bg-card border-t space-y-3">
               <Button
                 onClick={handleSubmit}
                 disabled={loading || items.length === 0}
-                className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-lg font-semibold"
+                className="w-full h-12 text-lg font-semibold"
               >
                 {loading && <Spinner className="mr-2" />}
                 {loading ? "Procesando Venta..." : "Completar Venta"}
