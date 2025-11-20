@@ -882,5 +882,315 @@ export default function NewSalePage() {
     )
   }
 
-  return <div className="min-h-screen bg-background p-6">{/* Form content here */}</div>
+  return (
+    <div className="min-h-screen bg-background p-6">
+      {/* Header with document type and number */}
+      <div className="max-w-7xl mx-auto space-y-6">
+        <Card className="border-2">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold">Nueva Venta</h1>
+                <p className="text-sm text-muted-foreground">{formatDateTime(saleDate)}</p>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Tipo de Comprobante</label>
+                  <select
+                    value={documentType}
+                    onChange={(e) => setDocumentType(e.target.value)}
+                    className="px-4 py-2 border rounded-md text-sm font-semibold"
+                  >
+                    <option value="factura-a">Factura A</option>
+                    <option value="factura-b">Factura B</option>
+                    <option value="factura-c">Factura C</option>
+                    <option value="remito">Remito</option>
+                    <option value="presupuesto">Presupuesto</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">N° Comprobante</label>
+                  <div className="px-4 py-2 bg-muted rounded-md text-sm font-mono">{documentNumber}</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Customer section */}
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-sm font-semibold mb-4 uppercase tracking-wide text-muted-foreground">
+              Datos del Cliente
+            </h3>
+
+            {!selectedCustomer ? (
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar cliente por nombre o email..."
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  className="w-full px-4 py-3 border rounded-md"
+                />
+
+                {customerSearch && filteredCustomers?.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
+                    {filteredCustomers.map((customer: any) => (
+                      <button
+                        key={customer.id}
+                        onClick={() => handleSelectCustomer(customer)}
+                        className="w-full px-4 py-3 text-left hover:bg-muted transition-colors"
+                      >
+                        <div className="font-medium">{customer.name}</div>
+                        <div className="text-sm text-muted-foreground">{customer.email}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-muted p-4 rounded-md">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <p className="font-semibold">{selectedCustomer.name}</p>
+                    <p className="text-sm text-muted-foreground">{selectedCustomer.email}</p>
+                    <p className="text-sm text-muted-foreground">{selectedCustomer.phone}</p>
+                  </div>
+                  <button onClick={handleDeselectCustomer} className="text-sm text-red-600 hover:text-red-700">
+                    Cambiar
+                  </button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Products section */}
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Productos</h3>
+              <button
+                onClick={() => setShowManualEntry(!showManualEntry)}
+                className="text-sm text-primary hover:underline"
+              >
+                {showManualEntry ? "Buscar producto" : "+ Agregar manual"}
+              </button>
+            </div>
+
+            {showManualEntry ? (
+              <div className="bg-muted p-4 rounded-md space-y-3">
+                <input
+                  type="text"
+                  placeholder="Nombre del producto"
+                  value={manualProduct.name}
+                  onChange={(e) => setManualProduct({ ...manualProduct, name: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="number"
+                    placeholder="Precio"
+                    value={manualProduct.price}
+                    onChange={(e) => setManualProduct({ ...manualProduct, price: e.target.value })}
+                    className="px-3 py-2 border rounded-md"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Cantidad"
+                    value={manualProduct.quantity}
+                    onChange={(e) => setManualProduct({ ...manualProduct, quantity: e.target.value })}
+                    className="px-3 py-2 border rounded-md"
+                  />
+                </div>
+                <button
+                  onClick={addManualProduct}
+                  className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                >
+                  Agregar Producto
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar producto por nombre o código..."
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  className="w-full px-4 py-3 border rounded-md"
+                />
+
+                {productSearch && filteredProducts?.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
+                    {filteredProducts.map((product: any) => (
+                      <button
+                        key={product.id}
+                        onClick={() => addProduct(product)}
+                        className="w-full px-4 py-3 text-left hover:bg-muted transition-colors"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="font-medium">{product.name}</div>
+                            <div className="text-sm text-muted-foreground">{product.sku}</div>
+                          </div>
+                          <div className="text-sm font-semibold">{formatCurrency(product.price)}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Items table */}
+            {items.length > 0 && (
+              <div className="border rounded-md overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase">Código</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase">Producto</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase">Cant.</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase">Precio</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase">Desc. %</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase">Total</th>
+                      <th className="px-4 py-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, index) => (
+                      <tr key={index} className="border-t">
+                        <td className="px-4 py-3 text-sm">{item.productCode}</td>
+                        <td className="px-4 py-3 text-sm font-medium">{item.productName}</td>
+                        <td className="px-4 py-3">
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updateItem(index, "quantity", Number.parseInt(e.target.value))}
+                            className="w-16 px-2 py-1 border rounded text-center text-sm"
+                            min="1"
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm">{formatCurrency(item.price)}</td>
+                        <td className="px-4 py-3">
+                          <input
+                            type="number"
+                            value={item.discount}
+                            onChange={(e) => updateItem(index, "discount", Number.parseFloat(e.target.value))}
+                            className="w-16 px-2 py-1 border rounded text-center text-sm"
+                            min="0"
+                            max="100"
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm font-semibold">
+                          {formatCurrency(calculateItemTotal(item))}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button onClick={() => removeItem(index)} className="text-red-600 hover:text-red-700 text-sm">
+                            ✕
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Payment and totals section */}
+        <Card>
+          <CardContent className="p-6 space-y-6">
+            {/* Payment details */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Condición</label>
+                <select
+                  value={saleCondition}
+                  onChange={(e) => setSaleCondition(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                  disabled={selectedCustomer && selectedCustomer.name !== "Consumidor Final"}
+                >
+                  <option value="contado">Contado</option>
+                  <option value="cuenta-corriente">Cuenta Corriente</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Forma de Pago</label>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                  disabled={saleCondition === "cuenta-corriente"}
+                >
+                  <option value="efectivo">Efectivo</option>
+                  <option value="transferencia">Transferencia</option>
+                  <option value="tarjeta-debito">Tarjeta de Débito</option>
+                  <option value="tarjeta-credito">Tarjeta de Crédito</option>
+                  <option value="mercadopago">Mercado Pago</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Caja</label>
+                <select
+                  value={cashRegister}
+                  onChange={(e) => setCashRegister(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                >
+                  <option value="caja-principal">Caja Principal</option>
+                  <option value="caja-secundaria">Caja Secundaria</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Observations */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">Observaciones</label>
+              <textarea
+                value={observations}
+                onChange={(e) => setObservations(e.target.value)}
+                placeholder="Notas adicionales..."
+                className="w-full px-3 py-2 border rounded-md text-sm min-h-[80px]"
+              />
+            </div>
+
+            {/* Totals */}
+            <div className="border-t pt-6 space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-medium">{formatCurrency(calculateSubtotal())}</span>
+              </div>
+
+              {calculateTotalDiscount() > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Descuento</span>
+                  <span className="font-medium text-red-600">-{formatCurrency(calculateTotalDiscount())}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-3 border-t">
+                <span className="text-lg font-semibold">TOTAL</span>
+                <span className="text-2xl font-bold text-primary">{formatCurrency(calculateTotal())}</span>
+              </div>
+            </div>
+
+            {/* Action button */}
+            <button
+              onClick={handleSubmit}
+              disabled={loading || items.length === 0}
+              className="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
+            >
+              {loading ? "Procesando..." : "Completar Venta"}
+            </button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
 }
