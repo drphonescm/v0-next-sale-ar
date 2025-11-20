@@ -85,10 +85,10 @@ export default function SubscriptionPage() {
     : 0
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 p-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">Suscripción y Pagos</h1>
-        <p className="text-muted-foreground">Gestiona tu plan y revisa tu historial</p>
+    <div className="max-w-6xl mx-auto space-y-8 p-6">
+      <div className="text-center space-y-3 pb-4">
+        <h1 className="text-4xl font-bold tracking-tight">Suscripción y Pagos</h1>
+        <p className="text-lg text-muted-foreground">Gestiona tu plan, canjea cupones y revisa tu historial</p>
       </div>
 
       {isBlocked && (
@@ -112,11 +112,11 @@ export default function SubscriptionPage() {
         </Alert>
       )}
 
-      <Card>
+      <Card className="shadow-md">
         <CardHeader>
-          <CardTitle>Estado Actual</CardTitle>
+          <CardTitle className="text-2xl">Estado Actual de Suscripción</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4">
+        <CardContent className="grid gap-6 md:grid-cols-4">
           <div>
             <div className="text-sm font-medium text-muted-foreground">Plan</div>
             <div className="text-lg font-bold">
@@ -149,153 +149,170 @@ export default function SubscriptionPage() {
         </CardContent>
       </Card>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Monthly Plan */}
-        <div className="border rounded-xl p-6 space-y-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold">Plan Mensual</h3>
-            <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-bold">$29.000</span>
-              <span className="text-muted-foreground">/mes</span>
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-center">Planes Disponibles</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Monthly Plan */}
+          <div className="border rounded-xl p-8 space-y-6 shadow-md hover:shadow-lg transition-all relative overflow-hidden bg-card">
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold">Plan Mensual</h3>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-bold">$29.000</span>
+                <span className="text-muted-foreground">/mes</span>
+              </div>
+              <p className="text-sm text-muted-foreground">Ideal para comenzar</p>
             </div>
-            <p className="text-sm text-muted-foreground">Ideal para comenzar</p>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-500" /> Acceso completo al sistema
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-500" /> Soporte prioritario
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-500" /> Actualizaciones incluidas
+              </li>
+            </ul>
+            <button
+              onClick={() => handleMercadoPago("MONTHLY")}
+              disabled={loading || !canPay}
+              className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6 py-2"
+            >
+              <CreditCard className="mr-2 h-4 w-4" />
+              {isActive ? "Suscripción Activa" : "Suscribirse Mensual"}
+            </button>
           </div>
-          <ul className="space-y-2 text-sm">
-            <li className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-green-500" /> Acceso completo al sistema
-            </li>
-            <li className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-green-500" /> Soporte prioritario
-            </li>
-            <li className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-green-500" /> Actualizaciones incluidas
-            </li>
-          </ul>
-          <button
-            onClick={() => handleMercadoPago("MONTHLY")}
-            disabled={loading || !canPay}
-            className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-          >
-            <CreditCard className="mr-2 h-4 w-4" />
-            {isActive ? "Suscripción Activa" : "Suscribirse Mensual"}
-          </button>
-        </div>
 
-        {/* Annual Plan */}
-        <div className="border rounded-xl p-6 space-y-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden border-primary/20 bg-primary/5">
-          <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-bl-xl font-medium">
-            AHORRA 20%
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold">Plan Anual</h3>
-            <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-bold">$275.000</span>
-              <span className="text-muted-foreground">/año</span>
+          {/* Annual Plan */}
+          <div className="border rounded-xl p-8 space-y-6 shadow-md hover:shadow-lg transition-all relative overflow-hidden border-primary/30 bg-primary/5">
+            <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-bl-xl font-medium">
+              AHORRA 20%
             </div>
-            <p className="text-sm text-muted-foreground">
-              Antes <span className="line-through">$348.000</span> al año
-            </p>
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold">Plan Anual</h3>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-bold">$275.000</span>
+                <span className="text-muted-foreground">/año</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Antes <span className="line-through">$348.000</span> al año
+              </p>
+            </div>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-500" /> Todo lo del plan mensual
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-500" /> 2 meses gratis
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-500" /> Consultoría inicial
+              </li>
+            </ul>
+            <button
+              onClick={() => handleMercadoPago("ANNUAL")}
+              disabled={loading || !canPay}
+              className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6 py-2"
+            >
+              <CreditCard className="mr-2 h-4 w-4" />
+              {isActive ? "Suscripción Activa" : "Suscribirse Anual"}
+            </button>
           </div>
-          <ul className="space-y-2 text-sm">
-            <li className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-green-500" /> Todo lo del plan mensual
-            </li>
-            <li className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-green-500" /> 2 meses gratis
-            </li>
-            <li className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-green-500" /> Consultoría inicial
-            </li>
-          </ul>
-          <button
-            onClick={() => handleMercadoPago("ANNUAL")}
-            disabled={loading || !canPay}
-            className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-          >
-            <CreditCard className="mr-2 h-4 w-4" />
-            {isActive ? "Suscripción Activa" : "Suscribirse Anual"}
-          </button>
         </div>
       </div>
 
-      {/* Coupon Section */}
-      <div className="max-w-md mx-auto pt-8 border-t">
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium flex items-center gap-2">
-            <Tag className="h-5 w-5" />
-            ¿Tienes un cupón?
-          </h3>
-          <form onSubmit={handleRedeemCoupon} className="flex gap-2">
+      <Card className="shadow-md">
+        <CardHeader>
+          <CardTitle className="text-2xl flex items-center gap-2">
+            <Tag className="h-6 w-6" />
+            ¿Tienes un cupón de descuento?
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleRedeemCoupon} className="flex gap-3 max-w-2xl">
             <input
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-              placeholder="Ingresa tu código"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Ingresa tu código de cupón (ej: MES-1234-ABCD)"
+              className="flex h-11 w-full rounded-md border border-input bg-background px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={loading || !couponCode}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6 py-2"
             >
               Canjear
             </button>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Historial de Cupones Canjeados y Pagos */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="space-y-6">
         {/* Historial de Cupones Canjeados */}
-        <div className="space-y-4">
-          <h3 className="text-xl font-bold flex items-center gap-2">
-            <Tag className="h-5 w-5" />
-            Cupones Canjeados
-          </h3>
-          <Card>
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <Tag className="h-6 w-6" />
+              Cupones Canjeados
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Código</TableHead>
+                  <TableHead className="w-[200px]">Código</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Fecha</TableHead>
+                  <TableHead>Fecha de Canje</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data?.usedCoupons?.length > 0 ? (
                   data.usedCoupons.map((coupon: any) => (
                     <TableRow key={coupon.id}>
-                      <TableCell className="font-mono font-bold">{coupon.code}</TableCell>
+                      <TableCell className="font-mono font-bold text-base">{coupon.code}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="text-sm">
                           {coupon.type === "MONTHLY" ? "Mensual (30 días)" : "Anual (365 días)"}
                         </Badge>
                       </TableCell>
-                      <TableCell>{new Date(coupon.createdAt).toLocaleDateString("es-AR")}</TableCell>
+                      <TableCell className="text-sm">
+                        {new Date(coupon.createdAt).toLocaleDateString("es-AR", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">Utilizado</Badge>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center text-muted-foreground">
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                       No has canjeado cupones aún
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Historial de Pagos */}
-        <div className="space-y-4">
-          <h3 className="text-xl font-bold flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Historial de Actividad
-          </h3>
-          <Card>
+        {/* Historial de Actividad */}
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <FileText className="h-6 w-6" />
+              Historial de Actividad
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Fecha</TableHead>
+                  <TableHead className="w-[200px]">Fecha</TableHead>
                   <TableHead>Descripción</TableHead>
                 </TableRow>
               </TableHeader>
@@ -303,21 +320,29 @@ export default function SubscriptionPage() {
                 {data?.history?.length > 0 ? (
                   data.history.map((log: any) => (
                     <TableRow key={log.id}>
-                      <TableCell className="text-sm">{new Date(log.timestamp).toLocaleDateString("es-AR")}</TableCell>
+                      <TableCell className="text-sm font-medium">
+                        {new Date(log.timestamp).toLocaleDateString("es-AR", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </TableCell>
                       <TableCell className="text-sm">{log.details}</TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={2} className="text-center text-muted-foreground">
+                    <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
                       No hay actividad registrada
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
