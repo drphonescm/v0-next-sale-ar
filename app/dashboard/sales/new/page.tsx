@@ -166,6 +166,22 @@ export default function NewSalePage() {
     }).format(date)
   }
 
+  const handleSelectCustomer = (customer: any) => {
+    setSelectedCustomer(customer)
+    setCustomerSearch("")
+    // Si no es "Consumidor Final", cambiar a cuenta corriente por defecto
+    if (customer.name !== "Consumidor Final") {
+      setSaleCondition("cuenta-corriente")
+    } else {
+      setSaleCondition("contado")
+    }
+  }
+
+  const handleDeselectCustomer = () => {
+    setSelectedCustomer(null)
+    setSaleCondition("contado")
+  }
+
   const handleSubmit = async () => {
     if (items.length === 0) {
       toast.error(t("pleaseAddAtLeastOneItem"))
@@ -175,46 +191,20 @@ export default function NewSalePage() {
     setLoading(true)
 
     try {
-      let finalCustomerId = selectedCustomer?.id
-
-      if (!finalCustomerId) {
-        // Buscar cliente "Consumidor Final"
-        const customersResponse = await fetch("/api/customers")
-        const allCustomers = await customersResponse.json()
-        let consumidorFinal = allCustomers.find((c: any) => c.name === "Consumidor Final")
-
-        // Si no existe, crearlo
-        if (!consumidorFinal) {
-          const createResponse = await fetch("/api/customers", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: "Consumidor Final",
-              email: null,
-              phone: null,
-            }),
-          })
-          if (createResponse.ok) {
-            consumidorFinal = await createResponse.json()
-          }
-        }
-
-        finalCustomerId = consumidorFinal?.id || null
-      }
-
       const response = await fetch("/api/sales", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          customerId: finalCustomerId,
+          customerId: selectedCustomer?.id || null,
           items: items.map((item) => ({
             productId: item.productId,
             productName: item.productName, // Siempre incluir productName para productos manuales y futuros eliminados
             quantity: item.quantity,
             price: item.price,
           })),
+          saleCondition,
           documentType,
           paymentMethod,
           observations,
@@ -716,6 +706,15 @@ export default function NewSalePage() {
       })
 
       yPos -= 15
+      page.drawLine({
+        start: { x: 10, y: yPos },
+        end: { x: width - 10, y: yPos },
+        thickness: 1,
+        dashArray: [3, 3],
+        color: rgb(0.7, 0.7, 0.7),
+      })
+
+      yPos -= 15
       const customerName = selectedCustomer?.name || "Consumidor Final"
       page.drawText("Cliente:", { x: 10, y: yPos, size: 7, font: boldFont, color: rgb(0.2, 0.2, 0.2) })
       yPos -= 10
@@ -926,7 +925,7 @@ export default function NewSalePage() {
         {/* Invoice-style card */}
         <Card className="shadow-lg">
           <CardContent className="p-0">
-            <div className="bg-muted/50 p-6 border-b-2">
+            <div className="bg-background border-b-2 border-foreground p-6">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <h1 className="text-2xl font-bold">{companySettings?.name || "Next Sale AR"}</h1>
@@ -936,7 +935,7 @@ export default function NewSalePage() {
                   )}
                 </div>
 
-                <div className="border-2 border-primary px-6 py-4 rounded-lg min-w-[200px] bg-background">
+                <div className="bg-card border-2 border-foreground px-6 py-4 rounded-lg shadow-md min-w-[200px]">
                   <div className="text-xs font-semibold mb-1 text-muted-foreground">TIPO DE COMPROBANTE</div>
                   <Select value={documentType} onValueChange={setDocumentType}>
                     <SelectTrigger className="h-10 border-0 bg-transparent p-0 font-bold text-base">
@@ -965,7 +964,7 @@ export default function NewSalePage() {
                 <div>
                   <span className="font-semibold">Condición:</span>
                   <Select value={saleCondition} onValueChange={setSaleCondition}>
-                    <SelectTrigger className="inline-flex ml-2 h-7 w-auto border-input bg-background">
+                    <SelectTrigger className="inline-flex ml-2 h-7 w-auto border bg-background">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -975,9 +974,21 @@ export default function NewSalePage() {
                   </Select>
                 </div>
               </div>
+
+              {saleCondition === "cuenta-corriente" && selectedCustomer && (
+                <div className="mt-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 p-3 rounded-lg text-sm text-blue-800 dark:text-blue-200">
+                  <strong>Cuenta Corriente:</strong> Esta venta se agregará a la deuda del cliente. No se generará
+                  recibo de pago.
+                </div>
+              )}
+
+              {saleCondition === "contado" && selectedCustomer && selectedCustomer.name !== "Consumidor Final" && (
+                <div className="mt-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-3 rounded-lg text-sm text-green-800 dark:text-green-200">
+                  <strong>Pago Contado:</strong> Se generará un recibo de pago que figurará en la cuenta del cliente.
+                </div>
+              )}
             </div>
 
-            {/* Customer section - invoice style */}
             <div className="p-6 border-b bg-card">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-lg">Datos del Cliente</h3>
@@ -1003,13 +1014,23 @@ export default function NewSalePage() {
                         {selectedCustomer.email && <div>Email: {selectedCustomer.email}</div>}
                         {selectedCustomer.phone && <div>Teléfono: {selectedCustomer.phone}</div>}
                         <div>Condición IVA: Consumidor Final</div>
+                        {selectedCustomer.currentDebt > 0 && (
+                          <div className="text-orange-600 dark:text-orange-400 font-semibold">
+                            Deuda actual: {formatCurrency(selectedCustomer.currentDebt)}
+                          </div>
+                        )}
+                        {selectedCustomer.creditLimit > 0 && (
+                          <div className="text-muted-foreground">
+                            Límite de crédito: {formatCurrency(selectedCustomer.creditLimit)}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => setSelectedCustomer(null)}
+                      onClick={handleDeselectCustomer}
                       className="text-destructive hover:text-destructive"
                     >
                       Cambiar
@@ -1030,19 +1051,21 @@ export default function NewSalePage() {
                   </div>
 
                   {customerSearch && filteredCustomers && filteredCustomers.length > 0 && (
-                    <div className="bg-white border rounded-lg shadow-md max-h-48 overflow-y-auto">
+                    <div className="bg-card border rounded-lg shadow-md max-h-48 overflow-y-auto">
                       {filteredCustomers.map((customer: any) => (
                         <button
                           key={customer.id}
                           type="button"
-                          onClick={() => {
-                            setSelectedCustomer(customer)
-                            setCustomerSearch("")
-                          }}
-                          className="w-full text-left p-3 hover:bg-blue-50 transition-colors border-b last:border-0"
+                          onClick={() => handleSelectCustomer(customer)}
+                          className="w-full text-left p-3 hover:bg-muted transition-colors border-b last:border-0"
                         >
                           <p className="font-medium">{customer.name}</p>
                           <p className="text-sm text-muted-foreground">{customer.email || "Sin email"}</p>
+                          {customer.currentDebt > 0 && (
+                            <p className="text-sm text-orange-600 dark:text-orange-400">
+                              Deuda: {formatCurrency(customer.currentDebt)}
+                            </p>
+                          )}
                         </button>
                       ))}
                     </div>
@@ -1050,7 +1073,7 @@ export default function NewSalePage() {
 
                   {!selectedCustomer && !customerSearch && (
                     <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm text-yellow-800">
-                      Si no selecciona un cliente, se facturará como "Consumidor Final"
+                      Si no selecciona un cliente, se facturará como "Consumidor Final" y se generará un recibo de pago.
                     </div>
                   )}
                 </div>
@@ -1113,13 +1136,13 @@ export default function NewSalePage() {
               </div>
 
               {productSearch && filteredProducts && filteredProducts.length > 0 && (
-                <div className="bg-white border rounded-lg shadow-md max-h-48 overflow-y-auto mb-4">
+                <div className="bg-card border rounded-lg shadow-md max-h-48 overflow-y-auto mb-4">
                   {filteredProducts.map((product: any) => (
                     <button
                       key={product.id}
                       type="button"
                       onClick={() => addProduct(product)}
-                      className="w-full text-left p-3 hover:bg-blue-50 flex justify-between items-center transition-colors border-b last:border-0"
+                      className="w-full text-left p-3 hover:bg-muted flex justify-between items-center transition-colors border-b last:border-0"
                     >
                       <div>
                         <p className="font-medium">{product.name}</p>
@@ -1127,24 +1150,23 @@ export default function NewSalePage() {
                           {product.sku} - Stock: {product.stock}
                         </p>
                       </div>
-                      <p className="font-semibold text-lg text-blue-600">{formatCurrency(product.price)}</p>
+                      <p className="font-semibold text-lg">{formatCurrency(product.price)}</p>
                     </button>
                   ))}
                 </div>
               )}
 
-              {/* Invoice-style table */}
               <div className="border-2 rounded-lg overflow-hidden">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted hover:bg-muted">
-                      <TableHead className="font-bold">Código</TableHead>
-                      <TableHead className="font-bold">Producto</TableHead>
-                      <TableHead className="font-bold text-center">Cant.</TableHead>
-                      <TableHead className="font-bold text-right">Precio Unit.</TableHead>
-                      <TableHead className="font-bold text-center">Bonif. %</TableHead>
-                      <TableHead className="font-bold text-right">Importe</TableHead>
-                      <TableHead className="font-bold text-center">Acciones</TableHead>
+                    <TableRow className="bg-foreground hover:bg-foreground">
+                      <TableHead className="text-background font-bold">Código</TableHead>
+                      <TableHead className="text-background font-bold">Producto</TableHead>
+                      <TableHead className="text-background font-bold text-center">Cant.</TableHead>
+                      <TableHead className="text-background font-bold text-right">Precio Unit.</TableHead>
+                      <TableHead className="text-background font-bold text-center">Bonif. %</TableHead>
+                      <TableHead className="text-background font-bold text-right">Importe</TableHead>
+                      <TableHead className="text-background font-bold text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1160,7 +1182,7 @@ export default function NewSalePage() {
                       </TableRow>
                     ) : (
                       items.map((item, index) => (
-                        <TableRow key={index} className="hover:bg-muted/50">
+                        <TableRow key={index} className="hover:bg-muted">
                           <TableCell className="font-mono">{item.productCode || "-"}</TableCell>
                           <TableCell className="font-medium">{item.productName}</TableCell>
                           <TableCell className="text-center">
@@ -1212,7 +1234,6 @@ export default function NewSalePage() {
                 </Table>
               </div>
 
-              {/* Totals section - invoice style */}
               {items.length > 0 && (
                 <div className="mt-6 flex justify-end">
                   <div className="w-80 space-y-3">
@@ -1226,10 +1247,10 @@ export default function NewSalePage() {
                         <span className="font-semibold">-{formatCurrency(calculateTotalDiscount())}</span>
                       </div>
                     )}
-                    <div className="border-t-2 border-primary pt-3">
+                    <div className="border-t-2 border-foreground pt-3">
                       <div className="flex justify-between items-center">
                         <span className="text-2xl font-bold">TOTAL:</span>
-                        <span className="text-3xl font-bold text-primary">{formatCurrency(calculateTotal())}</span>
+                        <span className="text-3xl font-bold">{formatCurrency(calculateTotal())}</span>
                       </div>
                     </div>
                   </div>
@@ -1280,12 +1301,11 @@ export default function NewSalePage() {
               </div>
             </div>
 
-            {/* Action buttons */}
             <div className="p-6 bg-card border-t space-y-3">
               <Button
                 onClick={handleSubmit}
                 disabled={loading || items.length === 0}
-                className="w-full h-12 text-lg font-semibold"
+                className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-lg font-semibold"
               >
                 {loading && <Spinner className="mr-2" />}
                 {loading ? "Procesando Venta..." : "Completar Venta"}
