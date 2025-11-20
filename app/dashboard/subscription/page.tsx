@@ -1,19 +1,13 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { Check, CreditCard, Tag, AlertTriangle, Clock, FileText } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Check, CreditCard, Tag, AlertTriangle, Clock, FileText } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function SubscriptionPage() {
@@ -83,8 +77,10 @@ export default function SubscriptionPage() {
   const isBlocked = sub?.status === "blocked"
   const isGrace = sub?.status === "grace"
   const isActive = sub?.status === "active"
-  
-  const daysRemaining = sub?.endDate 
+
+  const canPay = isBlocked || isGrace
+
+  const daysRemaining = sub?.endDate
     ? Math.ceil((new Date(sub.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     : 0
 
@@ -100,8 +96,8 @@ export default function SubscriptionPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Servicio Bloqueado</AlertTitle>
           <AlertDescription>
-            Tu suscripción ha vencido y el periodo de gracia ha terminado. 
-            Por favor realiza el pago para reactivar el acceso al sistema.
+            Tu suscripción ha vencido y el periodo de gracia ha terminado. Por favor realiza el pago para reactivar el
+            acceso al sistema.
           </AlertDescription>
         </Alert>
       )}
@@ -111,8 +107,7 @@ export default function SubscriptionPage() {
           <Clock className="h-4 w-4" />
           <AlertTitle>Periodo de Gracia</AlertTitle>
           <AlertDescription>
-            Tu suscripción ha vencido. Tienes acceso limitado por unos días. 
-            Evita el bloqueo realizando el pago ahora.
+            Tu suscripción ha vencido. Tienes acceso limitado por unos días. Evita el bloqueo realizando el pago ahora.
           </AlertDescription>
         </Alert>
       )}
@@ -124,7 +119,9 @@ export default function SubscriptionPage() {
         <CardContent className="grid gap-4 md:grid-cols-4">
           <div>
             <div className="text-sm font-medium text-muted-foreground">Plan</div>
-            <div className="text-lg font-bold">{sub?.plan === "ANNUAL" ? "Anual" : sub?.plan === "MONTHLY" ? "Mensual" : "Ninguno"}</div>
+            <div className="text-lg font-bold">
+              {sub?.plan === "ANNUAL" ? "Anual" : sub?.plan === "MONTHLY" ? "Mensual" : "Ninguno"}
+            </div>
           </div>
           <div>
             <div className="text-sm font-medium text-muted-foreground">Estado</div>
@@ -134,7 +131,9 @@ export default function SubscriptionPage() {
           </div>
           <div>
             <div className="text-sm font-medium text-muted-foreground">Vence el</div>
-            <div className="text-lg font-bold">{sub?.endDate ? new Date(sub.endDate).toLocaleDateString("es-AR") : "-"}</div>
+            <div className="text-lg font-bold">
+              {sub?.endDate ? new Date(sub.endDate).toLocaleDateString("es-AR") : "-"}
+            </div>
             {daysRemaining > 0 && isActive && (
               <div className="text-xs text-muted-foreground mt-1">
                 {daysRemaining} {daysRemaining === 1 ? "día restante" : "días restantes"}
@@ -162,17 +161,23 @@ export default function SubscriptionPage() {
             <p className="text-sm text-muted-foreground">Ideal para comenzar</p>
           </div>
           <ul className="space-y-2 text-sm">
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Acceso completo al sistema</li>
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Soporte prioritario</li>
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Actualizaciones incluidas</li>
+            <li className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-green-500" /> Acceso completo al sistema
+            </li>
+            <li className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-green-500" /> Soporte prioritario
+            </li>
+            <li className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-green-500" /> Actualizaciones incluidas
+            </li>
           </ul>
           <button
             onClick={() => handleMercadoPago("MONTHLY")}
-            disabled={loading}
+            disabled={loading || !canPay}
             className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
           >
             <CreditCard className="mr-2 h-4 w-4" />
-            {sub?.plan === "MONTHLY" && sub?.status === "ACTIVE" ? "Extender Plan" : "Suscribirse Mensual"}
+            {isActive ? "Suscripción Activa" : "Suscribirse Mensual"}
           </button>
         </div>
 
@@ -192,17 +197,23 @@ export default function SubscriptionPage() {
             </p>
           </div>
           <ul className="space-y-2 text-sm">
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Todo lo del plan mensual</li>
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> 2 meses gratis</li>
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Consultoría inicial</li>
+            <li className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-green-500" /> Todo lo del plan mensual
+            </li>
+            <li className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-green-500" /> 2 meses gratis
+            </li>
+            <li className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-green-500" /> Consultoría inicial
+            </li>
           </ul>
           <button
             onClick={() => handleMercadoPago("ANNUAL")}
-            disabled={loading}
+            disabled={loading || !canPay}
             className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
           >
             <CreditCard className="mr-2 h-4 w-4" />
-            {sub?.plan === "ANNUAL" && sub?.status === "ACTIVE" ? "Extender Plan" : "Suscribirse Anual"}
+            {isActive ? "Suscripción Activa" : "Suscribirse Anual"}
           </button>
         </div>
       </div>
