@@ -10,7 +10,7 @@ import { useTranslation } from "@/hooks/use-translation"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusIcon, Pencil, Trash2, Upload } from 'lucide-react'
+import { PlusIcon, Pencil, Trash2, Upload } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 interface Category {
@@ -105,9 +105,9 @@ export default function SettingsPage() {
       const response = await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           name: companyName,
-          cuit: companyCuit 
+          cuit: companyCuit,
         }),
       })
 
@@ -130,6 +130,18 @@ export default function SettingsPage() {
       return
     }
 
+    const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/svg+xml"]
+    if (!validTypes.includes(logoFile.type)) {
+      toast.error("Tipo de archivo no válido. Solo se permiten PNG, JPG, JPEG, WEBP o SVG")
+      return
+    }
+
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (logoFile.size > maxSize) {
+      toast.error("El archivo es demasiado grande. Tamaño máximo: 5MB")
+      return
+    }
+
     setLoading(true)
     try {
       const formData = new FormData()
@@ -140,7 +152,10 @@ export default function SettingsPage() {
         body: formData,
       })
 
-      if (!response.ok) throw new Error("Failed to upload logo")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Error al subir el logo")
+      }
 
       const { url } = await response.json()
 
@@ -158,7 +173,7 @@ export default function SettingsPage() {
       setIsEditingLogo(false)
     } catch (error) {
       console.error("Error uploading logo:", error)
-      toast.error("Error al subir el logo")
+      toast.error(error instanceof Error ? error.message : "Error al subir el logo")
     } finally {
       setLoading(false)
     }
@@ -329,7 +344,7 @@ export default function SettingsPage() {
                     <Label className="text-muted-foreground">Nombre de la Empresa</Label>
                     <p className="text-lg font-medium">{companyName || "No configurado"}</p>
                   </div>
-                  
+
                   <div>
                     <Label className="text-muted-foreground">CUIT</Label>
                     <p className="text-lg font-medium">{companyCuit || "No configurado"}</p>
@@ -346,7 +361,7 @@ export default function SettingsPage() {
                       placeholder="Ingresa el nombre de tu empresa"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="companyCuit">CUIT (Opcional)</Label>
                     <Input
@@ -361,8 +376,8 @@ export default function SettingsPage() {
                     <Button onClick={handleSaveCompanyInfo} disabled={loading}>
                       {loading ? "Guardando..." : "Guardar Cambios"}
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={() => {
                         setIsEditingCompany(false)
                         fetchSettings()
@@ -394,7 +409,11 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-center p-4 border rounded-lg bg-muted">
                 {logoUrl ? (
-                  <img src={logoUrl || "/placeholder.svg"} alt="Logo de la Empresa" className="max-h-32 object-contain" />
+                  <img
+                    src={logoUrl || "/placeholder.svg"}
+                    alt="Logo de la Empresa"
+                    className="max-h-32 object-contain"
+                  />
                 ) : (
                   <p className="text-muted-foreground">No hay logo configurado</p>
                 )}
@@ -402,14 +421,37 @@ export default function SettingsPage() {
 
               {isEditingLogo && (
                 <>
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 p-4 space-y-2">
+                    <p className="font-medium text-sm text-blue-900 dark:text-blue-100">📋 Requisitos del logo:</p>
+                    <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 ml-4 list-disc">
+                      <li>
+                        <strong>Formatos permitidos:</strong> PNG, JPG, JPEG, WEBP o SVG
+                      </li>
+                      <li>
+                        <strong>Tamaño máximo:</strong> 5MB
+                      </li>
+                      <li>
+                        <strong>Recomendación:</strong> Fondo transparente (PNG) para mejor apariencia
+                      </li>
+                      <li>
+                        <strong>Dimensiones sugeridas:</strong> 500x500 píxeles o mayor
+                      </li>
+                    </ul>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="logo">Seleccionar Nuevo Logo</Label>
                     <Input
                       id="logo"
                       type="file"
-                      accept="image/*"
+                      accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
                       onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
                     />
+                    {logoFile && (
+                      <p className="text-sm text-muted-foreground">
+                        Archivo seleccionado: {logoFile.name} ({(logoFile.size / 1024 / 1024).toFixed(2)} MB)
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex gap-2">
@@ -417,8 +459,8 @@ export default function SettingsPage() {
                       <Upload className="mr-2 h-4 w-4" />
                       {loading ? "Subiendo..." : "Guardar Logo"}
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={() => {
                         setIsEditingLogo(false)
                         setLogoFile(null)
