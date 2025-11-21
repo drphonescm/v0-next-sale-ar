@@ -62,7 +62,7 @@ export function ProductLabelGenerator({ product, company }: ProductLabelGenerato
           style={{ fontFamily: "Arial, sans-serif" }}
         >
           {company?.logoUrl && (
-            <div className="absolute top-4 left-4 bg-white rounded-full p-2 shadow-md border-2 border-gray-100 z-10">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white rounded-full p-2 shadow-md border-2 border-gray-100 z-10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={company.logoUrl || "/placeholder.svg"}
