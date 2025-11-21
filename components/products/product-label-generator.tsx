@@ -61,10 +61,22 @@ export function ProductLabelGenerator({ product, company }: ProductLabelGenerato
           className="flex w-[600px] h-[250px] bg-white relative"
           style={{ fontFamily: "Arial, sans-serif" }}
         >
+          {company?.logoUrl && (
+            <div className="absolute top-4 left-4 bg-white rounded-full p-2 shadow-md border-2 border-gray-100 z-10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={company.logoUrl || "/placeholder.svg"}
+                alt="Logo"
+                className="h-12 w-12 object-contain"
+                crossOrigin="anonymous"
+              />
+            </div>
+          )}
+
           {/* Left Side - Product Info */}
           <div className="flex-1 p-5 flex flex-col justify-between relative border-r border-gray-100 overflow-hidden">
-            <div className="flex-1 flex items-center my-2">
-              <h3 className="text-4xl font-bold leading-tight text-black text-left w-full line-clamp-2">
+            <div className="flex-1 flex items-center my-2 pt-16">
+              <h3 className="text-3xl font-bold leading-tight text-black text-left w-full line-clamp-2">
                 {product.name}
               </h3>
             </div>
@@ -92,18 +104,6 @@ export function ProductLabelGenerator({ product, company }: ProductLabelGenerato
               </span>
             </div>
           </div>
-
-          {company?.logoUrl && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg border-4 border-gray-100 z-10">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={company.logoUrl || "/placeholder.svg"}
-                alt="Logo"
-                className="h-16 w-16 object-contain"
-                crossOrigin="anonymous"
-              />
-            </div>
-          )}
         </div>
       </div>
 
