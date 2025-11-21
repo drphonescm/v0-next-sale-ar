@@ -94,7 +94,7 @@ export function ProductLabelGenerator({ product, company }: ProductLabelGenerato
           </div>
 
           {company?.logoUrl && (
-            <div className="absolute top-1/2 left-[300px] -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg border-4 border-gray-100">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg border-4 border-gray-100 z-10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={company.logoUrl || "/placeholder.svg"}
