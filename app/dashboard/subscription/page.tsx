@@ -103,7 +103,7 @@ export default function SubscriptionPage() {
       )}
 
       {isGrace && (
-        <Alert className="border-yellow-500 text-yellow-600 bg-yellow-50">
+        <Alert className="border-yellow-500 dark:border-yellow-600 text-yellow-800 dark:text-yellow-200 bg-yellow-50 dark:bg-yellow-950">
           <Clock className="h-4 w-4" />
           <AlertTitle>Periodo de Gracia</AlertTitle>
           <AlertDescription>

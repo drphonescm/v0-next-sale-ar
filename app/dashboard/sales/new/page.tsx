@@ -1182,9 +1182,10 @@ export default function NewSalePage() {
 
             {/* Action button */}
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={loading || items.length === 0}
-              className="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
+              className="w-full py-3 bg-green-600 dark:bg-green-700 text-white rounded-md hover:bg-green-700 dark:hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
             >
               {loading ? "Procesando..." : "Completar Venta"}
             </button>

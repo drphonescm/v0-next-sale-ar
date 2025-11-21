@@ -14,7 +14,18 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, PackageIcon, UsersIcon, ShoppingCartIcon, WalletIcon, LogOutIcon, BarChart3Icon, SettingsIcon, ClockIcon, AlertTriangle } from 'lucide-react'
+import {
+  LayoutDashboardIcon,
+  PackageIcon,
+  UsersIcon,
+  ShoppingCartIcon,
+  WalletIcon,
+  LogOutIcon,
+  BarChart3Icon,
+  SettingsIcon,
+  ClockIcon,
+  AlertTriangle,
+} from "lucide-react"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -30,12 +41,7 @@ interface DashboardLayoutClientProps {
   isGrace: boolean
 }
 
-export function DashboardLayoutClient({
-  children,
-  session,
-  isBlocked,
-  isGrace,
-}: DashboardLayoutClientProps) {
+export function DashboardLayoutClient({ children, session, isBlocked, isGrace }: DashboardLayoutClientProps) {
   return (
     <SessionProvider session={session} refetchInterval={0} refetchOnWindowFocus={false}>
       <SidebarProvider defaultOpen={true}>
@@ -126,7 +132,7 @@ export function DashboardLayoutClient({
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              
+
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Suscripción">
                   <Link href="/dashboard/subscription">
@@ -162,9 +168,12 @@ export function DashboardLayoutClient({
               <LanguageSwitcher />
             </div>
           </header>
-          
+
           {isGrace && (
-            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 mx-4 flex justify-between items-center" role="alert">
+            <div
+              className="bg-yellow-50 dark:bg-yellow-950 border-l-4 border-yellow-500 dark:border-yellow-600 text-yellow-800 dark:text-yellow-200 p-4 mb-4 mx-4 flex justify-between items-center"
+              role="alert"
+            >
               <div className="flex items-center">
                 <AlertTriangle className="h-5 w-5 mr-2" />
                 <div>
@@ -172,7 +181,10 @@ export function DashboardLayoutClient({
                   <p className="text-sm">Tenés 7 días para renovarla antes de perder el acceso.</p>
                 </div>
               </div>
-              <Link href="/dashboard/subscription" className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded text-sm">
+              <Link
+                href="/dashboard/subscription"
+                className="bg-yellow-500 hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded text-sm"
+              >
                 Renovar Ahora
               </Link>
             </div>

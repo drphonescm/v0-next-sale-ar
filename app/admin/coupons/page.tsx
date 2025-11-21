@@ -1,8 +1,10 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { Plus, Trash2, RefreshCw, Sparkles } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Plus, Trash2, Sparkles } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface Coupon {
   id: string
@@ -51,7 +53,9 @@ export default function AdminCouponsPage() {
 
       if (res.ok) {
         const data = await res.json()
-        alert(`¡Cupón generado exitosamente!\n\nCódigo: ${data.code}\nTipo: ${type === "MONTHLY" ? "Mensual" : "Anual"}`)
+        alert(
+          `¡Cupón generado exitosamente!\n\nCódigo: ${data.code}\nTipo: ${type === "MONTHLY" ? "Mensual" : "Anual"}`,
+        )
         fetchCoupons()
       } else {
         const error = await res.text()
@@ -143,7 +147,7 @@ export default function AdminCouponsPage() {
                   disabled={generating}
                   className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg hover:border-primary hover:bg-primary/5 transition-colors disabled:opacity-50"
                 >
-                  <Sparkles className="h-8 w-8 mb-2 text-blue-500" />
+                  <Sparkles className="h-8 w-8 mb-2 text-primary" />
                   <span className="font-medium">Generar Cupón Mensual</span>
                   <span className="text-xs text-muted-foreground mt-1">Código automático</span>
                 </button>
@@ -152,7 +156,7 @@ export default function AdminCouponsPage() {
                   disabled={generating}
                   className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg hover:border-primary hover:bg-primary/5 transition-colors disabled:opacity-50"
                 >
-                  <Sparkles className="h-8 w-8 mb-2 text-purple-500" />
+                  <Sparkles className="h-8 w-8 mb-2 text-primary" />
                   <span className="font-medium">Generar Cupón Anual</span>
                   <span className="text-xs text-muted-foreground mt-1">Código automático</span>
                 </button>
@@ -234,22 +238,22 @@ export default function AdminCouponsPage() {
                     <td className="p-4 align-middle font-medium">{coupon.code}</td>
                     <td className="p-4 align-middle">
                       {coupon.type === "MONTHLY" ? (
-                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-blue-100 text-blue-800 hover:bg-blue-200">
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary/10 text-primary hover:bg-primary/20">
                           Mensual
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-purple-100 text-purple-800 hover:bg-purple-200">
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary/10 text-primary hover:bg-primary/20">
                           Anual
                         </span>
                       )}
                     </td>
                     <td className="p-4 align-middle">
                       {coupon.status === "active" ? (
-                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-green-100 text-green-800 hover:bg-green-200">
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-900">
                           Activo
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-gray-100 text-gray-800 hover:bg-gray-200">
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700">
                           Usado
                         </span>
                       )}
