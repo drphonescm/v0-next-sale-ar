@@ -16,7 +16,7 @@ importers:
         version: 1.0.2
       '@prisma/client':
         specifier: latest
-        version: 6.19.0(prisma@6.18.0(typescript@5.0.2))(typescript@5.0.2)
+        version: 7.0.0(prisma@6.18.0(typescript@5.0.2))(typescript@5.0.2)
       '@radix-ui/react-accordion':
         specifier: ^1.1.2
         version: 1.2.12(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -36,7 +36,7 @@ importers:
         specifier: ^2.0.2
         version: 2.1.8(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@radix-ui/react-select':
-        specifier: ^2.0.0
+        specifier: latest
         version: 2.2.6(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@radix-ui/react-separator':
         specifier: ^1.0.3
@@ -118,7 +118,7 @@ importers:
         version: 3.4.1(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react-is@16.13.1)(react@19.0.0)(redux@5.0.1)
       resend:
         specifier: latest
-        version: 6.5.0(@react-email/render@2.0.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
+        version: 6.5.2(@react-email/render@2.0.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
       sonner:
         specifier: latest
         version: 2.0.7(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -434,12 +434,15 @@ packages:
   '@pdf-lib/upng@1.0.1':
     resolution: {integrity: sha512-dQK2FUMQtowVP00mtIksrlZhdFXQZPC+taih1q4CvPZ5vqdxR/LKBaFg0oAfzd1GlHZXXSPdQfzQnt+ViGvEIQ==}
 
-  '@prisma/client@6.19.0':
-    resolution: {integrity: sha512-QXFT+N/bva/QI2qoXmjBzL7D6aliPffIwP+81AdTGq0FXDoLxLkWivGMawG8iM5B9BKfxLIXxfWWAF6wbuJU6g==}
-    engines: {node: '>=18.18'}
+  '@prisma/client-runtime-utils@7.0.0':
+    resolution: {integrity: sha512-PAiFgMBPrLSaakBwUpML5NevipuKSL3rtNr8pZ8CZ3OBXo0BFcdeGcBIKw/CxJP6H4GNa4+l5bzJPrk8Iq6tDw==}
+
+  '@prisma/client@7.0.0':
+    resolution: {integrity: sha512-FM1NtJezl0zH3CybLxcbJwShJt7xFGSRg+1tGhy3sCB8goUDnxnBR+RC/P35EAW8gjkzx7kgz7bvb0MerY2VSw==}
+    engines: {node: ^20.19 || ^22.12 || ^24.0}
     peerDependencies:
       prisma: '*'
-      typescript: '>=5.1.0'
+      typescript: '>=5.4.0'
     peerDependenciesMeta:
       prisma:
         optional: true
@@ -1757,8 +1760,8 @@ packages:
   reselect@5.1.1:
     resolution: {integrity: sha512-K/BG6eIky/SBpzfHZv/dd+9JBFiS4SWV7FIujVyJRux6e45+73RaUHXLmIR1f7WOMaQ0U1km6qwklRQxpJJY0w==}
 
-  resend@6.5.0:
-    resolution: {integrity: sha512-XeuR/xEDx0TZJ9CT2G9GLbHJcZ4EDHk1cG+dF7lMbSkOLs6dl2A68aD82bjgi8eJ5AljuzKHAjxgPDK3ZAR4Kg==}
+  resend@6.5.2:
+    resolution: {integrity: sha512-Yl83UvS8sYsjgmF8dVbNPzlfpmb3DkLUk3VwsAbkaEFo9UMswpNuPGryHBXGk+Ta4uYMv5HmjVk3j9jmNkcEDg==}
     engines: {node: '>=20'}
     peerDependencies:
       '@react-email/render': '*'
@@ -2140,7 +2143,11 @@ snapshots:
     dependencies:
       pako: 1.0.11
 
-  '@prisma/client@6.19.0(prisma@6.18.0(typescript@5.0.2))(typescript@5.0.2)':
+  '@prisma/client-runtime-utils@7.0.0': {}
+
+  '@prisma/client@7.0.0(prisma@6.18.0(typescript@5.0.2))(typescript@5.0.2)':
+    dependencies:
+      '@prisma/client-runtime-utils': 7.0.0
     optionalDependencies:
       prisma: 6.18.0(typescript@5.0.2)
       typescript: 5.0.2
@@ -3363,7 +3370,7 @@ snapshots:
 
   reselect@5.1.1: {}
 
-  resend@6.5.0(@react-email/render@2.0.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)):
+  resend@6.5.2(@react-email/render@2.0.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)):
     dependencies:
       svix: 1.76.1
     optionalDependencies:
