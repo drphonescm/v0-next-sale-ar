@@ -39,15 +39,7 @@ export async function POST(request: NextRequest) {
     const companyId = await getCompanyId()
 
     const body = await request.json()
-    const {
-      customerId,
-      items,
-      status = "completed",
-      paymentMethod = "efectivo",
-      saleCondition = "contado",
-      documentType = "FACTURA_C",
-      observations = "",
-    } = body
+    const { customerId, items, status = "completed", paymentMethod = "efectivo", saleCondition = "contado" } = body
 
     console.log("[v0] Creating sale with data:", { customerId, itemsCount: items?.length, status, saleCondition })
 
@@ -63,27 +55,28 @@ export async function POST(request: NextRequest) {
 
     let finalCustomerId = customerId
 
+    // Si NO hay cliente, buscar o crear "Consumidor Final"
     if (!finalCustomerId) {
-      let consumidorFinal = await db.customer.findFirst({
-        where: {
-          companyId,
-          name: "Consumidor Final",
-          deletedAt: null,
-        },
-      })
+      const customersResponse = await fetch("/api/customers")
+      const allCustomers = await customersResponse.json()
+      let consumidorFinal = allCustomers.find((c: any) => c.name === "Consumidor Final")
 
       if (!consumidorFinal) {
-        consumidorFinal = await db.customer.create({
-          data: {
-            companyId,
+        const createResponse = await fetch("/api/customers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             name: "Consumidor Final",
             email: null,
             phone: null,
-          },
+          }),
         })
+        if (createResponse.ok) {
+          consumidorFinal = await createResponse.json()
+        }
       }
 
-      finalCustomerId = consumidorFinal.id
+      finalCustomerId = consumidorFinal?.id || null
     }
 
     // Obtener números de documentos
@@ -131,8 +124,6 @@ export async function POST(request: NextRequest) {
         status,
         internalNumber,
         documentNumber,
-        documentType,
-        observations,
         items: {
           create: itemsWithNames,
         },

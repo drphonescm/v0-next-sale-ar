@@ -41,7 +41,6 @@ export default function NewSalePage() {
   const [paymentMethod, setPaymentMethod] = useState("efectivo")
   const [paymentConcept, setPaymentConcept] = useState("varias")
   const [cashRegister, setCashRegister] = useState("caja-principal")
-  const [selectedCashRegister, setSelectedCashRegister] = useState<string | null>(null)
 
   // Observations
   const [observations, setObservations] = useState("")
@@ -180,23 +179,9 @@ export default function NewSalePage() {
       return
     }
 
-    if (!selectedCashRegister) {
-      toast.error("Por favor selecciona una caja")
-      return
-    }
-
     setLoading(true)
 
     try {
-      console.log("[v0] Submitting sale with data:", {
-        customerId: selectedCustomer?.id,
-        itemsCount: items.length,
-        saleCondition,
-        documentType,
-        paymentMethod,
-        cashRegisterId: selectedCashRegister,
-      })
-
       const response = await fetch("/api/sales", {
         method: "POST",
         headers: {
@@ -206,7 +191,7 @@ export default function NewSalePage() {
           customerId: selectedCustomer?.id || null,
           items: items.map((item) => ({
             productId: item.productId,
-            productName: item.productName,
+            productName: item.productName, // Siempre incluir productName para productos manuales y futuros eliminados
             quantity: item.quantity,
             price: item.price,
           })),
@@ -214,25 +199,22 @@ export default function NewSalePage() {
           documentType,
           paymentMethod,
           observations,
-          cashRegisterId: selectedCashRegister,
         }),
       })
 
-      const data = await response.json()
-
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create sale")
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to create sale")
       }
 
-      console.log("[v0] Sale created successfully:", data)
-
+      const data = await response.json()
       setCompletedSaleId(data.id)
       setCompletedSaleNumber(data.internalNumber)
       setSaleCompleted(true)
       toast.success(t("saleCompletedSuccessfully"))
     } catch (error: any) {
       console.error("[v0] Error creating sale:", error)
-      toast.error(error.message || t("errorCreatingSale"))
+      toast.error(error.message || t("failedToCreateSale"))
     } finally {
       setLoading(false)
     }
@@ -1158,7 +1140,7 @@ export default function NewSalePage() {
                 <label className="text-xs font-medium text-muted-foreground">Caja</label>
                 <select
                   value={cashRegister}
-                  onChange={(e) => setSelectedCashRegister(e.target.value)}
+                  onChange={(e) => setCashRegister(e.target.value)}
                   className="w-full px-3 py-2 border rounded-md text-sm"
                 >
                   <option value="caja-principal">Caja Principal</option>
@@ -1202,7 +1184,7 @@ export default function NewSalePage() {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={loading || items.length === 0 || !selectedCashRegister}
+              disabled={loading || items.length === 0}
               className="w-full py-3 bg-green-600 dark:bg-green-700 text-white rounded-md hover:bg-green-700 dark:hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
             >
               {loading ? "Procesando..." : "Completar Venta"}
