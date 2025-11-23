@@ -10,10 +10,6 @@
     "prisma:migrate": "prisma migrate deploy",
     "start": "next start"
   },
-  "resolutions": {
-    "@prisma/client": "6.18.0",
-    "prisma": "6.18.0"
-  },
   "dependencies": {
     "@auth/core": "latest",
     "@neondatabase/serverless": "latest",
@@ -71,22 +67,12 @@
     "typescript": "^5"
   },
   "pnpm": {
-    "peerDependencyRules": {
-      "allowAny": [
-        "@prisma/client",
-        "prisma"
-      ]
-    },
     "onlyBuiltDependencies": [
       "@prisma/engines",
       "prisma",
       "@prisma/client",
       "@tailwindcss/oxide",
       "sharp"
-    ],
-    "overrides": {
-      "@prisma/client": "6.18.0",
-      "prisma": "6.18.0"
-    }
+    ]
   }
 }
