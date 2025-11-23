@@ -5,6 +5,7 @@
   "scripts": {
     "build": "prisma generate && next build",
     "dev": "next dev -p 3000",
+    "preinstall": "rm -f pnpm-lock.yaml",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
@@ -66,13 +67,5 @@
     "tailwindcss": "^4.1.9",
     "typescript": "^5"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@prisma/engines",
-      "prisma",
-      "@prisma/client",
-      "@tailwindcss/oxide",
-      "sharp"
-    ]
-  }
+  "packageManager": "pnpm@9.15.0"
 }
