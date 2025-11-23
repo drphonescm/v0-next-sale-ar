@@ -11,6 +11,10 @@
     "prisma:migrate": "prisma migrate deploy",
     "start": "next start"
   },
+  "resolutions": {
+    "@prisma/client": "7.0.0",
+    "prisma": "7.0.0"
+  },
   "dependencies": {
     "@auth/core": "latest",
     "@neondatabase/serverless": "latest",
@@ -63,9 +67,15 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "postcss": "^8.5",
-    "prisma": "6.18.0",
+    "prisma": "7.0.0",
     "tailwindcss": "^4.1.9",
     "typescript": "^5"
   },
-  "packageManager": "pnpm@9.15.0"
+  "packageManager": "pnpm@9.15.0",
+  "pnpm": {
+    "overrides": {
+      "@prisma/client": "7.0.0",
+      "prisma": "7.0.0"
+    }
+  }
 }
