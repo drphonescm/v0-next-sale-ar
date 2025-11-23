@@ -110,6 +110,14 @@ model User {
 3. Vercel detectará automáticamente Next.js
 4. El build ejecutará `prisma generate && next build`
 
+## 🆘 Solución de Problemas de Deployment
+
+Si encuentras errores como `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH` durante el deployment en Vercel:
+
+1. **El problema:** Existe un conflicto entre la configuración de `package.json` y el archivo `pnpm-lock.yaml` antiguo.
+2. **La solución:** Elimina el archivo `pnpm-lock.yaml` de tu repositorio y vuelve a desplegar. Vercel generará uno nuevo y limpio.
+3. Las versiones de Prisma han sido fijadas en `6.18.0` para garantizar estabilidad.
+
 ## 📱 Páginas principales
 
 - `/` - Landing page
