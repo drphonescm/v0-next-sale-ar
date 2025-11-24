@@ -35,7 +35,6 @@
     "@vercel/blob": "latest",
     "bcrypt-ts": "latest",
     "bcryptjs": "3.0.2",
-    "better-sqlite3": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "crypto": "latest",
@@ -62,6 +61,7 @@
     "xlsx": "latest"
   },
   "devDependencies": {
+    "@prisma/config": "latest",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22",
