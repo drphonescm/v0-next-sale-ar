@@ -7,14 +7,7 @@ declare global {
 }
 
 const prismaClientSingleton = () => {
-  return new PrismaClient({
-    // En Prisma 7, pasamos la URL explícitamente para asegurar la conexión
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
-  })
+  return new PrismaClient()
 }
 
 // Usar globalThis es el estándar moderno
