@@ -11,8 +11,8 @@
     "start": "next start"
   },
   "resolutions": {
-    "@prisma/client": "7.0.0",
-    "prisma": "7.0.0"
+    "@prisma/client": "6.19.0",
+    "prisma": "6.19.0"
   },
   "dependencies": {
     "@auth/core": "latest",
@@ -35,7 +35,6 @@
     "@vercel/blob": "latest",
     "bcrypt-ts": "latest",
     "bcryptjs": "3.0.2",
-    "better-sqlite3": "latest",
     "child_process": "1.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -65,22 +64,21 @@
     "xlsx": "latest"
   },
   "devDependencies": {
-    "@prisma/config": "latest",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "postcss": "^8.5",
-    "prisma": "7.0.0",
+    "prisma": "6.19.0",
     "tailwindcss": "^4.1.9",
     "typescript": "^5"
   },
   "packageManager": "pnpm@9.15.0",
   "pnpm": {
     "overrides": {
-      "@prisma/client": "7.0.0",
-      "prisma": "7.0.0"
+      "@prisma/client": "6.19.0",
+      "prisma": "6.19.0"
     }
   }
 }
