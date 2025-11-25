@@ -6,6 +6,8 @@ import useSWR from "swr"
 import { Card, CardContent } from "@/components/ui/card"
 import { useTranslation } from "@/hooks/use-translation"
 import { toast } from "react-toastify"
+import { Button } from "@/components/ui/button"
+import { Receipt, FileText, ArrowLeft } from "lucide-react"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -220,7 +222,7 @@ export default function NewSalePage() {
     }
   }
 
-  const generateA4Invoice = async () => {
+  const generateInvoicePDF = async () => {
     try {
       const { PDFDocument, rgb, StandardFonts } = await import("pdf-lib")
 
@@ -846,6 +848,9 @@ export default function NewSalePage() {
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-bold text-green-600 dark:text-green-400">{t("saleCompleted")}</h2>
               <p className="text-muted-foreground">{t("saleCompletedSuccessfully")}</p>
+              <p className="text-lg font-semibold">
+                {t("saleNumber")}: #{completedSaleNumber}
+              </p>
             </div>
 
             <div className="bg-muted p-6 rounded-lg space-y-4">
@@ -875,6 +880,25 @@ export default function NewSalePage() {
                   <span className="font-medium">{formatCurrency(calculateTotal())}</span>
                 </div>
               </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <Button
+                variant="outline"
+                onClick={generateTicketInvoice}
+                className="flex items-center gap-2 bg-transparent"
+              >
+                <Receipt className="h-4 w-4" />
+                {t("printTicket")}
+              </Button>
+              <Button variant="outline" onClick={generateInvoicePDF} className="flex items-center gap-2 bg-transparent">
+                <FileText className="h-4 w-4" />
+                {t("printInvoice")}
+              </Button>
+              <Button onClick={() => router.push("/dashboard/sales")} className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                {t("backToSales")}
+              </Button>
             </div>
           </CardContent>
         </Card>
