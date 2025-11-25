@@ -1,10 +1,10 @@
-import { defineConfig } from "@prisma/config"
+import { defineConfig, env } from "prisma/config"
 
 export default defineConfig({
   // Ubicación del schema
   schema: "./schema.prisma",
-  // Configuración del datasource (sin anidar bajo 'db')
+  // Configuración del datasource usando env() de prisma/config
   datasource: {
-    url: process.env.DATABASE_URL!,
+    url: env("DATABASE_URL"),
   },
 })
