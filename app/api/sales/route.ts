@@ -55,25 +55,25 @@ export async function POST(request: NextRequest) {
 
     let finalCustomerId = customerId
 
-    // Si NO hay cliente, buscar o crear "Consumidor Final"
     if (!finalCustomerId) {
-      const customersResponse = await fetch("/api/customers")
-      const allCustomers = await customersResponse.json()
-      let consumidorFinal = allCustomers.find((c: any) => c.name === "Consumidor Final")
+      // Buscar "Consumidor Final" en la base de datos directamente
+      let consumidorFinal = await db.customer.findFirst({
+        where: {
+          companyId,
+          name: "Consumidor Final",
+        },
+      })
 
+      // Si no existe, crearlo
       if (!consumidorFinal) {
-        const createResponse = await fetch("/api/customers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        consumidorFinal = await db.customer.create({
+          data: {
+            companyId,
             name: "Consumidor Final",
             email: null,
             phone: null,
-          }),
+          },
         })
-        if (createResponse.ok) {
-          consumidorFinal = await createResponse.json()
-        }
       }
 
       finalCustomerId = consumidorFinal?.id || null
