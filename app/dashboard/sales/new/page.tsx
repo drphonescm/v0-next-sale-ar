@@ -8,8 +8,7 @@ import { useTranslation } from "@/hooks/use-translation"
 import { toast } from "react-toastify"
 import { Button } from "@/components/ui/button"
 import { Receipt, FileText, ArrowLeft } from "lucide-react"
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface SaleItem {
   productId: string | null
@@ -907,36 +906,39 @@ export default function NewSalePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-3">
       {/* Header with document type and number */}
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-3">
         <Card className="border-2">
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <h1 className="text-2xl font-bold">Nueva Venta</h1>
-                <p className="text-sm text-muted-foreground">{formatDateTime(saleDate)}</p>
+              <div className="space-y-0.5">
+                <h1 className="text-xl font-bold">Nueva Venta</h1>
+                <p className="text-xs text-muted-foreground">{formatDateTime(saleDate)}</p>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <div className="space-y-0.5">
                   <label className="text-xs font-medium text-muted-foreground">Tipo de Comprobante</label>
-                  <select
-                    value={documentType}
-                    onChange={(e) => setDocumentType(e.target.value)}
-                    className="px-4 py-2 border rounded-md text-sm font-semibold"
-                  >
-                    <option value="factura-a">Factura A</option>
-                    <option value="factura-b">Factura B</option>
-                    <option value="factura-c">Factura C</option>
-                    <option value="remito">Remito</option>
-                    <option value="presupuesto">Presupuesto</option>
-                  </select>
+                  <Select value={documentType} onValueChange={setDocumentType}>
+                    <SelectTrigger className="w-[140px] h-8 text-sm bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      <SelectItem value="factura-a">Factura A</SelectItem>
+                      <SelectItem value="factura-b">Factura B</SelectItem>
+                      <SelectItem value="factura-c">Factura C</SelectItem>
+                      <SelectItem value="remito">Remito</SelectItem>
+                      <SelectItem value="presupuesto">Presupuesto</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <label className="text-xs font-medium text-muted-foreground">N° Comprobante</label>
-                  <div className="px-4 py-2 bg-muted rounded-md text-sm font-mono">{documentNumber}</div>
+                  <div className="px-3 py-1.5 bg-muted rounded-md text-sm font-mono h-8 flex items-center">
+                    {documentNumber}
+                  </div>
                 </div>
               </div>
             </div>
@@ -945,8 +947,8 @@ export default function NewSalePage() {
 
         {/* Customer section */}
         <Card>
-          <CardContent className="p-6">
-            <h3 className="text-sm font-semibold mb-4 uppercase tracking-wide text-muted-foreground">
+          <CardContent className="p-3">
+            <h3 className="text-xs font-semibold mb-2 uppercase tracking-wide text-muted-foreground">
               Datos del Cliente
             </h3>
 
@@ -957,7 +959,7 @@ export default function NewSalePage() {
                   placeholder="Buscar cliente por nombre o email..."
                   value={customerSearch}
                   onChange={(e) => setCustomerSearch(e.target.value)}
-                  className="w-full px-4 py-3 border rounded-md"
+                  className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
                 />
 
                 {customerSearch && filteredCustomers?.length > 0 && (
@@ -994,9 +996,9 @@ export default function NewSalePage() {
 
         {/* Products section */}
         <Card>
-          <CardContent className="p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Productos</h3>
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Productos</h3>
               <button
                 onClick={() => setShowManualEntry(!showManualEntry)}
                 className="text-sm text-primary hover:underline"
@@ -1128,48 +1130,63 @@ export default function NewSalePage() {
 
         {/* Payment and totals section */}
         <Card>
-          <CardContent className="p-6 space-y-6">
+          <CardContent className="p-3 space-y-6">
             {/* Payment details */}
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">Condición</label>
-                <select
+                <Select
                   value={saleCondition}
-                  onChange={(e) => setSaleCondition(e.target.value)}
+                  onValueChange={setSaleCondition}
                   className="w-full px-3 py-2 border rounded-md text-sm"
                   disabled={selectedCustomer && selectedCustomer.name !== "Consumidor Final"}
                 >
-                  <option value="contado">Contado</option>
-                  <option value="cuenta-corriente">Cuenta Corriente</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar condición" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="contado">Contado</SelectItem>
+                    <SelectItem value="cuenta-corriente">Cuenta Corriente</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">Forma de Pago</label>
-                <select
+                <Select
                   value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  onValueChange={setPaymentMethod}
                   className="w-full px-3 py-2 border rounded-md text-sm"
                   disabled={saleCondition === "cuenta-corriente"}
                 >
-                  <option value="efectivo">Efectivo</option>
-                  <option value="transferencia">Transferencia</option>
-                  <option value="tarjeta-debito">Tarjeta de Débito</option>
-                  <option value="tarjeta-credito">Tarjeta de Crédito</option>
-                  <option value="mercadopago">Mercado Pago</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar forma de pago" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="efectivo">Efectivo</SelectItem>
+                    <SelectItem value="transferencia">Transferencia</SelectItem>
+                    <SelectItem value="tarjeta-debito">Tarjeta de Débito</SelectItem>
+                    <SelectItem value="tarjeta-credito">Tarjeta de Crédito</SelectItem>
+                    <SelectItem value="mercadopago">Mercado Pago</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">Caja</label>
-                <select
+                <Select
                   value={cashRegister}
-                  onChange={(e) => setCashRegister(e.target.value)}
+                  onValueChange={setCashRegister}
                   className="w-full px-3 py-2 border rounded-md text-sm"
                 >
-                  <option value="caja-principal">Caja Principal</option>
-                  <option value="caja-secundaria">Caja Secundaria</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar caja" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="caja-principal">Caja Principal</SelectItem>
+                    <SelectItem value="caja-secundaria">Caja Secundaria</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -1219,3 +1236,5 @@ export default function NewSalePage() {
     </div>
   )
 }
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json())
